@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+     <head>
+        <title>Xi Search Submit Form</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
+        <link rel="stylesheet" href="vendor/css/dataTables.jqueryui.css" />
+        <link rel="stylesheet" href="vendor/css/jquery.fileupload.css" />
+        <link rel="stylesheet" href="vendor/css/jquery.fileupload-ui.css" />
+        <link rel="stylesheet" href="vendor/css/multiple-select.css" />
+        <link rel="stylesheet" href="../searches/css/style.css" />
+        <link rel="stylesheet" href="css/submitSearch.css" />
+        <link rel="stylesheet" href="css/tooltip.css" />
+
+        <script src="vendor/js/jquery-2.2.0.js"></script>
+        <script src="vendor/js/jquery-ui.js"></script>
+        <script src="vendor/js/d3.js"></script>
+        <script src="vendor/js/jquery.dataTables.js"></script>
+        <script src="vendor/js/multiple-select.js"></script>
+
+        <!-- The Templates plugin is included to render the upload/download listings -->
+        <script src="vendor/js/tmpl.js"></script>
+        <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+        <script src="vendor/js/jquery.iframe-transport.js"></script>
+        <!-- The basic File Upload plugin -->
+        <script src="vendor/js/jquery.fileupload.js"></script>
+        <!-- The File Upload processing plugin -->
+        <script src="vendor/js/jquery.fileupload-process.js"></script>
+        <!-- The File Upload validation plugin -->
+        <script src="vendor/js/jquery.fileupload-validate.js"></script>
+        <!-- The File Upload user interface plugin -->
+        <script src="vendor/js/jquery.fileupload-ui.js"></script>
+        <script src="vendor/js/jquery.fileupload-jquery-ui.js"></script>
+        <!-- blueimp application script, pokes some controls into life -->
+        <script src="vendor/js/main.js"></script>
+         
+        <script src="js/tooltip.js"></script>
+        <script src="js/submitSearch.js"></script>
+     </head>
+    
+     <body>
+        <!-- The template to display files available for upload -->
+        <script id="template-upload" type="text/x-tmpl">
+            {% for (var i=0, file; file=o.files[i]; i++) { %}
+            <tr class="template-upload fade">
+                <td>
+                    <p class="name">{%=file.name%}</p>
+                    {% if (file.error) { %}
+                    <div><span class="label label-important">Error</span> {%=file.error%}</div>
+                    {% } %}
+                </td>
+                <td>
+                    <!-- <p class="size">{%=o.formatFileSize(file.size)%}</p> -->
+                    {% if (!o.files.error) { %}
+                    <div class="progress progress-success progress-striped active size" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar" style="width:0%;"></div></div>
+                    {% } %}
+                </td>
+                <td>
+                    {% if (!o.files.error && !i && !o.options.autoUpload) { %}
+                    <button class="btn-primary start hiddenFromUser">
+                        <span>Start</span>
+                    </button>
+                    {% } %}
+                    {% if (!i) { %}
+                    <button class="btn-warning cancel">
+                        <span>Remove</span>
+                    </button>
+                    {% } %}
+                </td>
+            </tr>
+            {% } %}
+        </script>
+
+        <!-- The template to display files available for download -->
+        <script id="template-download" type="text/x-tmpl">
+            {% for (var i=0, file; file=o.files[i]; i++) { %}
+            <tr class="template-download fade">
+                <td>
+                    <p class="name">
+                        <a href="{%=file.url%}" title="{%=file.name%}" class="{%=file.thumbnail_url?'gallery':''%}" download="{%=file.name%}">{%=file.name%}</a>
+                    </p>
+                    {% if (file.error) { %}
+                    <div><span class="label label-important">Error</span> {%=file.error%}</div>
+                    {% } %}
+                </td>
+                <td>
+                    <span class="size">{%=o.formatFileSize(file.size)%}</span>
+                </td>
+            </tr>
+            {% } %}
+        </script>
+         
+         
+        <script id="template-acqseq-section" type="text/x-tmpl">
+             <div class="row">
+                <div class="col-2"><h3>Choose {%=o.pluralLabel%}</h3></div>
+                <div class="col-10"><p id="{%=o.partialId%}Selected" class="chosenFiles"></p></div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="{%=o.partialId%}Accordion">
+                        <h3>Upload New {%=o.pluralLabel%}</h3>
+
+                        <div id="{%=o.partialId%}Upload">
+                            <div class="row uploadLabels">
+                                <div class="col-4"><p>Enter New {%=o.singleLabel%} Name</P></div>
+                                <div class="col-8"><p>Accepted File Types: {%=o.fileTypes%}</P></div>
+                            </div>
+                            <!-- The file upload form used as target for the file upload widget -->
+                            <form class="fileupload" id="{%=o.partialId%}fileupload" action="./vendor/server/php/CLMSUpload.php" method="POST" enctype="multipart/form-data">
+                                <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
+                                <div class="row fileupload-buttonbar">
+                                    <div class="fileupload-buttons">
+                                        <input type="text" value="" id="new{%=o.partialId%}ID" name="new{%=o.partialId%}ID" placeholder="{%=o.singleLabel%} Name Required" size="30" style="width:33%"></input>
+                                        <!-- The fileinput-button span is used to style the file input field as button -->
+                                        <span class="fileinput-button">
+                                            <span>Add files...</span>
+                                            <input type="file" name="files[]" accept="{%=o.fileTypes%}" multiple>
+                                        </span>
+                                        <button type="submit" class="start">Start upload</button>
+                                        <button type="reset" class="cancel">Remove all files</button>
+                                        <!-- <button type="button" class="delete">Delete</button> -->
+                                        <!-- <input type="checkbox" class="toggle"> -->
+                                        <!-- The global file processing state -->
+                                        <span class="fileupload-process"></span>
+                                    </div>
+                                    <!-- The global progress state -->
+                                    <div class="fileupload-progress fade" style="display:none">
+                                        <!-- The global progress bar -->
+                                        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <!-- The extended global progress state -->
+                                        <div class="progress-extended">&nbsp;</div>
+                                    </div>
+                                </div>
+                                <!-- The table listing the files available for upload/download -->
+                                <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
+                            </form>
+                        </div>
+
+                        <h3>Use Previous {%=o.pluralLabel%}</h3>
+                        <div id="{%=o.partialId%}Previous"></div>
+                    </div>
+                </div>
+            </div>
+        </script>
+         
+        <div>
+            <button id="backButton"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>Back</button>
+            <h1>New Search Form</h1>
+            <div id="acquire"></div>
+            <div id="sequence"></div>
+        
+            <div class="row">   
+                <div class="col-12"><h3>Set Search Parameters</h3></div>
+            </div>
+            
+            <form id="parameterForm" name="login_form" method="post" action="php/submitParams.php">
+            <div class="lrmargin">
+                <div class="row">
+                    <div class="col-8 paramSetting" id="paramSearchName"></div>
+                    <div class="col-2 paramSetting"><button id="useGlobalDefaults">Use Global Defaults</button></div>
+                    <div class="col-2 paramSetting"><button id="useLastSearchDefaults">Use Last Search Defaults</button></div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6 paramSetting" id="paramCrossLinker"></div>
+                    <div class="col-6 paramSetting" id="paramEnzyme"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-4 paramSetting" id="paramTolerance"></div>
+                    <div class="col-4 paramSetting" id="paramTolerance2"></div>
+                    <div class="col-4 paramSetting" id="paramMissedCleavages"></div>
+                </div>
+
+                <div class="row"> 
+                    <div class="col-6 paramSetting" id="paramFixedMods"></div>
+                    <div class="col-6 paramSetting" id="paramVarMods"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 paramSetting" id="paramIons"></div>
+                    <div class="col-6 paramSetting" id="paramLosses"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-2">
+                        <button id="startProcessing">Submit New Search</button>
+                    </div>
+                    <div class="col-4" id="todo"></div>
+                    <div class="col-6 paramSetting" id="paramNotes"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6"></div>
+                    <div class="col-6 paramSetting" id="paramCustom"></div>
+                </div>
+            </div>
+            </form>
+        </div>
+
+        <script>
+            CLMSUI.tooltip.init ("mgtooltip");
+            CLMSUI.buildSubmitSearch(); // Call the javascript that fills in the html scaffolding and x-tmpl templates and builds the forms
+        </script>
+
+    </body>
+</html>
