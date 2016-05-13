@@ -13,40 +13,36 @@ else {
         //open connection
         $dbconn = pg_connect($connectionString);
         
-        $possibleValues = array();
+        pg_prepare ($dbconn, "isSuperUser", "SELECT super_user FROM users WHERE id = $1");
+        $result = pg_execute($dbconn, "isSuperUser", [$_SESSION['user_id']]);
+        $firstRow = pg_fetch_assoc ($result); // get first row (should be only one)
+        $isSuperUser = $firstRow["super_user"];
         
-        $getFieldValues = array (
-            "enzymes" => "SELECT id, name from enzyme ORDER by name",
-            "ions" => "SELECT id, name from ion ORDER by name",
-            "xlinkers" => "SELECT id, name from crosslinker ORDER by name",
-            "losses" => "SELECT id, name from loss ORDER by name",
-            "modifications" => "SELECT id, name from modification ORDER by name",
-            "previousAcqui" => "SELECT acquisition.id, name AS Name, to_char(upload_date, 'YYYY-MM-DD HH24:MI') AS Date, users.user_name AS User from acquisition JOIN users ON (acquisition.uploadedby = users.id) ORDER BY acquisition.id DESC",
-            "previousSeq" => "SELECT sequence_file.id, name AS Name, file_name as file, to_char(upload_date, 'YYYY-MM-DD HH24:MI') AS Date, users.user_name AS User from sequence_file JOIN users ON (sequence_file.uploadedby = users.id) ORDER BY upload_date DESC",
-            "filenames" => "SELECT acq_id, name FROM run ORDER by acq_id DESC"
-        );
-            
-        foreach ($getFieldValues as $key => $value) {
-            pg_prepare ($dbconn, $key, $value);
-            $result = pg_execute ($dbconn, $key, array());
-            $possibleValues[$key] = resultsAsArray($result);
+        if ($isSuperUser !== "t") {
+             pg_prepare ($dbconn, "allUserInfo", "SELECT id, user_name, see_all, super_user FROM users");
+             $result = pg_execute($dbconn, "allUserInfo", []);
+        } else {
+             pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name FROM users WHERE id = $1");
+             $result = pg_execute($dbconn, "singleUserInfo", [$_SESSION['user_id']]);
         }
-
-        // Get basedir for file uploads
-        $query = "SELECT setting FROM base_setting WHERE name='base_directory_path';";
-        $baseDir = pg_fetch_row(pg_query($query))[0];
-
-        // Store this server side 'cos we don't need it client side
-        $_SESSION["baseDir"] = $baseDir;
-
+        
+        $returnedData = pg_fetch_all ($result);
+        foreach ($returnedData as $key => $value) {
+            // $value["newPassword"] = 'jhjhj'; doesn't work, $value is a copy, not a reference to the original
+            $returnedData[$key]["newPassword"] = '';
+            error_log(print_r($value, true));
+        }
+        
+        error_log(print_r($returnedData, true));
+             
         //close connection
         pg_close($dbconn);
 
-        echo json_encode ($possibleValues);
+        echo json_encode ($returnedData);
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
-        echo (json_encode (array ("error" => "Error when querying database for default values<br>".$date)));
+        echo (json_encode (array ("error" => "Error when querying database for user<br>".$date)));
     }
 }
 
