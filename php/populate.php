@@ -19,10 +19,10 @@ else {
         $isSuperUser = $firstRow["super_user"];
         
         if ($isSuperUser !== "t") {
-             pg_prepare ($dbconn, "allUserInfo", "SELECT id, user_name, see_all, super_user FROM users");
+             pg_prepare ($dbconn, "allUserInfo", "SELECT id, user_name, see_all, super_user, email FROM users");
              $result = pg_execute($dbconn, "allUserInfo", []);
         } else {
-             pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name FROM users WHERE id = $1");
+             pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name, email FROM users WHERE id = $1");
              $result = pg_execute($dbconn, "singleUserInfo", [$_SESSION['user_id']]);
         }
         

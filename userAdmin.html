@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+     <head>
+        <title>Xi Search Submit Form</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
+        <link rel="stylesheet" href="vendor/css/dataTables.jqueryui.css" />
+        <!-- <link rel="stylesheet" href="vendor/css/multiple-select.css" /> -->
+        <link rel="stylesheet" href="vendor/css/jqueryui-editable.css" />
+        <link rel="stylesheet" href="../searches/css/style.css" />
+        <link rel="stylesheet" href="css/submitSearch.css" />
+        <link rel="stylesheet" href="css/tooltip.css" />
+
+        <script src="vendor/js/jquery-2.2.0.js"></script>
+        <script src="vendor/js/jquery-ui.js"></script>
+        <script src="vendor/js/d3.js"></script>
+        <script src="vendor/js/jquery.dataTables.js"></script>
+        <!-- <script src="vendor/js/multiple-select.js"></script> -->
+        <!-- <script src="vendor/js/jqueryui-editable.js"></script> -->
+        <script src="vendor/js/jquery.jeditable.js"></script>
+
+        <!-- The Templates plugin is included to render the upload/download listings -->
+        <!-- <script src="vendor/js/tmpl.js"></script> -->
+         
+        <script src="js/tooltip.js"></script>
+        <script src="js/userAdmin.js"></script>
+     </head>
+    
+     <body>
+         
+        <div>
+            <button id="backButton"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>Back</button>
+            <h1>User Administration</h1>
+            
+            <div class="row">   
+                <div class="col-12" id="userTable"></div>
+            </div>
+            
+            <form id="parameterForm" name="login_form" method="post" action="php/submitParams.php">
+            <div class="lrmargin">
+                <div class="row">
+                    <div class="col-3">
+                        <button id="addNewUser">Add New User</button>
+                    </div>
+                    <div class="col-3" id="todo"></div>
+                    <div class="col-6 paramSetting" id="paramNotes"></div>
+                </div>
+            </div>
+            </form>
+        </div>
+
+        <script>
+            CLMSUI.tooltip.init ("mgtooltip");
+            CLMSUI.buildUserAdmin(); // Call the javascript that fills in the html scaffolding and x-tmpl templates and builds the forms
+        </script>
+
+    </body>
+</html>

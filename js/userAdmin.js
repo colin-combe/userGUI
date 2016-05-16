@@ -1,6 +1,6 @@
 var CLMSUI = CLMSUI || {};
 
-CLMSUI.buildSubmitSearch = function () {
+CLMSUI.buildUserAdmin = function () {
     
     (function (original) {
         console.enableLogging = function () {
@@ -10,7 +10,7 @@ CLMSUI.buildSubmitSearch = function () {
             console.log = function () {};
         };
     })(console.log);
-    console.disableLogging();
+    //console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
@@ -33,7 +33,275 @@ CLMSUI.buildSubmitSearch = function () {
         });
     }
     
-    // Interface lements that can be built without waiting for database queries to return
+    function canDoImmediately () {
+        // Make buttons
+        var buttonData = [
+            {id: "#addNewUser", type: "button"},
+            {id: "#backButton", type: "button"},
+        ];
+        buttonData.forEach (function (buttonDatum) {
+            var buttonID = buttonDatum.id;
+            $(buttonID).button();  
+            d3.select(buttonID).attr("type", buttonDatum.type);
+        });
+        
+        // Add action for back button
+        d3.select("#backButton").on("click", function() { window.history.back(); });
+    };
+    canDoImmediately();
+    
+     $(document).ready (function () {
+        
+        $.ajax ({
+            type: "GET",
+            url: "./php/populate.php",
+            dataType: "json",
+            encode: true,
+            success: gotUserDataResponse,
+            error: function (jqXhr, textStatus, errorThrown) {
+                errorDialog ("popErrorDialog", "An Error occurred when trying to access the database for form choices<br>"+errorDateFormat (new Date()), "Connection Error");
+            },
+        });
+     });
+                        
+     function gotUserDataResponse (response) {
+         console.log ("bleh ", response);
+         makeTable (response);
+     }
+    
+
+    var addToolTipListeners = function (cellSel) {
+        cellSel
+            .on ("mouseover", function(d) {
+                var text = $.isArray(d.value) ? d.value.join("<br>") : d.value;
+                CLMSUI.tooltip
+                    .updateText (d.key, text)
+                    .updatePosition (d3.event)
+                ;
+            })
+            .on ("mouseleave", CLMSUI.tooltip.setToFade)
+        ;
+    };
+    
+     function makeTable (userData) {
+         // Settings for tables of previous acquisitions / sequences
+        $.fn.dataTable.ext.order['dom-checkbox'] = function ( settings, col ) {
+            return this.api().column(col, {order:'index'}).nodes().map (function (td, i) {
+                return $('input', td).prop('checked') ? '1' : '0';
+            });
+        };
+         
+        var previousSettings = {
+            users: {domid: "#userTable", data: userData, dataIDField: "id", niceLabel: "User Table", required: true, selectSummaryid: "#acqSelected", 
+                    autoWidths: d3.set(["newPassword", "email"]),
+                    types: {"id": "hidden", "user_name": "text", "see_all" :"checkbox", super_user: "checkbox", "email": "text", "newPassword": "text", "delete": "button"}
+            },
+        };
+        d3.values(previousSettings).forEach (function (psetting) {
+            var sel = d3.select (psetting.domid);
+            var baseId = psetting.domid.slice(1)+"Table";
+            sel.html ("<TABLE><THEAD><TR></TR></THEAD><TBODY></TBODY></TABLE>");
+            sel.select("table")
+                .attr("id", baseId)
+                .attr("class", "previousTable")
+            ;
+            var vcWidth = Math.floor (100.0 / Math.max (1, psetting.autoWidths.size()))+"%";
+
+            var hrow = sel.select("tr");
+            var headers = d3.keys(psetting.data[0]);
+            headers.push("Delete");
+            hrow.selectAll("th").data(headers).enter()
+                .append("th")
+                .text(function(d) { return d; })
+                .filter (function(d,i) { return psetting.autoWidths.has(d); })
+                .classed ("varWidthCell", true)
+                 .style ("width", vcWidth)
+            ;
+
+            var tbody = sel.select("tbody");
+            var rowJoin = tbody.selectAll("tr").data(psetting.data, function(d) { return d[psetting.dataIDField]; });
+            var newRows = rowJoin.enter().append("tr");
+            
+            function swapOnClick (spanSel) {
+                spanSel.style("display", "none");
+                d3.select(spanSel.node().parentNode).select("input")
+                    .style("display", "inline")
+                    .node().focus()
+                ;
+            }
+
+            var cellJoin = newRows.selectAll("td").data (function(d) { d.delete = false; return d3.entries(d); });
+            var newCells = cellJoin.enter().append("td")
+                .on ("click", function() { swapOnClick (d3.select(this).select("span")); })
+            ;
+            
+            newCells.append("span")
+                //.attr("href", "#")
+                .attr("id", function(d,i,ii) { return "uval_"+psetting.data[ii].id+"_"+d.key; })
+                //.attr("data-type", "text")
+                //.attr("data-pk", function(d,i,ii) { return psetting.data[ii].id; })
+                //.attr("data-name", function(d) { return d.key; })
+                .text(function(d) { return d.value || "undefined"; })
+                .on ("click", function() { swapOnClick (d3.select(this)); })
+            ;
+            
+            
+            newCells.append("input")
+                .attr ("type", function(d) { return psetting.types[d.key]; })
+                .style ("display", "none")
+                .each (function (d,i,ii) {
+                    var d3Elem = d3.select(this);
+                    if (psetting.types[d.key] === "checkbox") {
+                        d3Elem
+                            .property("checked", d.value === "t" || d.value === "y" || d.value === true)
+                            .style ("display", "inline")
+                            .on ("click", function (d) {
+                                d.value = !!!d.value;
+                                //d3.select(this).style("display", "none");
+                                d3.select(d3.select(this).node().parentNode).select("span")
+                                    //.style("display", "inline")
+                                    .text (d.value)
+                                ;
+                            })
+                        ;
+                         d3.select(d3Elem.node().parentNode).select("span").style("display", "none");
+                    } else if (psetting.types[d.key] === "button") {
+                        d3Elem
+                            .text (function(d) { return d.key; })
+                            .property ("value", function(d) { return d.key; })
+                            .style ("display", "inline")
+                            .on ("click", function (d) {
+                                //d.value = !!!d.value;
+                                //d3.select(this).style("display", "none");
+                                d3.select(d3.select(this).node().parentNode).select("span")
+                                    //.style("display", "inline")
+                                    .text (d.value)
+                                ;
+                            })
+                        ;
+                         d3.select(d3Elem.node().parentNode).select("span").style("display", "none");
+                    } else {
+                        d3Elem
+                            .property("value", d.value)
+                            .on("keyup", function(d) {
+                                var ev = d3.event;
+                                console.log ("ev", ev);
+                                if (ev.keyCode === 13) {
+                                    var value = d3Elem.property("value");
+                                    d.value = value;
+                                    d3.select(this).style("display", "none");
+                                    d3.select(d3.select(this).node().parentNode).select("span")
+                                        .style("display", "inline")
+                                        .text (d.value || "undefined")
+                                    ;
+                                }
+                            })
+                            .on ("blur", function (d) {
+                                console.log ("blur", d);
+                                d3.select(this).style("display", "none");
+                                d3.select(d3.select(this).node().parentNode).select("span")
+                                    .style("display", "inline")
+                                    .text (d.value || "undefined")
+                                ;
+                            })
+                        ;
+                    }
+                })
+            ;
+            
+            newCells
+                .classed ("markAsEditable", function(d) { return d.key !== psetting.dataIDField; })
+                .classed ("edit", function(d) { return d.key !== psetting.dataIDField; })
+                // stuff for variable width cells, including adding tooltips
+                .filter (function(d) { return psetting.autoWidths.has(d.key); })
+                .classed ("varWidthCell", true)
+                .style ("width", vcWidth) 
+                .call (addToolTipListeners)
+            ;
+            
+            console.log ("cells", tbody.selectAll("td"));
+            //$(tbody.selectAll("td.markAsEditable a")).editable();
+            //$(tbody.selectAll("td.markAsEditable")).editable('./php/save.php', {
+            //    tooltip : 'Click to edit...'
+            //});
+
+
+            /*
+            newRows.append ("td").append("input")
+                .attr ("type", "checkbox")
+            ;
+            */
+
+            var table = $("#"+baseId).dataTable ({
+                "paging": true,
+                "jQueryUI": true,
+                "ordering": true,
+                "order": [[ 0, "desc" ]],   // order by first column
+                //"columnDefs": [
+                //    {"orderDataType": "dom-checkbox", "targets": [-1],} // -1 = last column (checkbox column)
+                //]
+            });
+
+
+            // this stuffs a hidden input field in the main parameter search form
+            /*
+            d3.select("#parameterForm").append("input")
+                .attr ("class", "formPart")
+                .attr ("type", "hidden")
+                .attr ("name", baseId+"[]") // add [] for php because passed value can/will be an array (tho for a hidden input the array is stringified in the value attr first and we need to split it before submission)
+                .attr ("id", baseId+"Hidden")
+                .attr ("data-label", psetting.niceLabel)   
+                .attr ("value", "")
+                .property ("required", psetting.required)
+                .each (function(d) {
+                    if (psetting.required) {
+                        d3.select(this).attr("required", psetting.required);
+                    }
+                })
+            ;
+            */
+
+            // on a selection in the table, we then smuggle the current selection set of ids into the hidden form
+            // where they can be picked up on the parameter form submit, and show the current selection to the user
+            /*
+            prevTableClickFuncs[baseId] = function () {
+                var dtRows = $("#"+baseId).DataTable().rows().nodes(); // loads of tr dom nodes
+                var allRows = d3.selectAll(dtRows);
+
+                var selectedRows = allRows.filter(function(d) { return d.isSelected; });
+                selectedRows
+                    .classed ("selected", true)
+                    .select("input")
+                        .property("checked", true)
+                ;
+                var unselectedRows = allRows.filter(function(d) { return ! d.isSelected; });
+                unselectedRows
+                    .classed ("selected", false)
+                    .select("input")
+                        .property ("checked", false)
+                ;
+
+                var checkedData = selectedRows.data();
+                var ids = checkedData.map (function(d) { return +d.id; });
+                d3.select("#"+baseId+"Hidden").property("value", "["+ids.join(",")+"]");  // Put the ids in the hidden form element
+
+                // make removable labels outside of accordion area for selected rows
+                makeRemovableLabels (psetting.selectSummaryid, baseId, checkedData);
+
+                console.log ("change form");
+                dispatchObj.formInputChanged();
+            }; 
+            */
+
+            //newRows.call (addRowListeners, baseId);
+        });
+
+     }
+},
+
+CLMSUI.buildSubmitSearch = function () {
+    
+    // Interface elements that can be built without waiting for database queries to return
     function canDoImmediately () {
         // Make acquisition and sequence divs via shared template
         var acqSeqTemplateData = [
