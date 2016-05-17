@@ -44,39 +44,11 @@
     width: 100%;
 }
 
-.paramSetting {
-    background: #eee;
-}
-
-.paramSetting P {
-    padding: 0;
-    margin: 0;
-}
 
 .lrmargin {
     margin: 0 0.5em;
 }
 
-#acqUpload, #acquisitions-browse, #seqUpload, #sequence-browse {
-    display: none;
-}
-
-#parameterForm .paramSetting {
-    border: 1px solid #ccc;
-    border-bottom: 0;
-}
-
-#todo {
-    background: #fdd;
-}
-
-#todo.paramSubmitReady {
-    background: #dfd;
-}
-
-#todo span {
-    display: inline-block;
-}
 
 P, H1, H3, span {
     line-height: 1.4em;
@@ -109,44 +81,6 @@ H3 {
    max-width: 5em;
 }
 
-
-.uploadTemplate p {
-    margin: 0;
-}
-
-.uploadLabels {
-    color: #888;
-}
-
-span.removable {
-    color: #444;
-    /*border: 1px solid #ba6;*/
-    border-radius: 0.3em;
-    background: #fec;
-    padding-left: 0.5em;
-    display: inline-block;
-    margin-right: 0.15em;
-    margin-bottom: 0.15em;
-}
-
-span.removable button {
-    border: 1px solid gray;
-    /*width: 18px;*/
-    margin: 0em 0.3em;
-    height: 1em;
-}
-
-
-.progress {
-    line-height: 2em;
-    padding-left: 0.2em;
-}
-
-.chosenFiles {
-    color: black;
-    padding-top: 0.55em;
-}
-
 .hiddenFromUser {
     display: none;
 }
@@ -157,12 +91,6 @@ span.removable button {
 
 #backButton span {
     display: inline-block;
-}
-
-textarea, textarea.ui-state-default.formPart, input[type=text] {
-    color: #222;
-    width: 100%;
-    overflow-x: hidden;
 }
 
 
@@ -194,11 +122,19 @@ textarea, textarea.ui-state-default.formPart, input[type=text] {
     font-size: 0.8em;
 }
 
-.ui-spinner {
-    vertical-align: baseline;
-    width: 5em;
+.changedValue {
+    background: #ddf;
+    border-bottom: 1px solid #88b;
 }
 
-input[type='number'], input[type='text'] {
-    height: 1.75em;
+td span[contenteditable] {
+    min-width: 3em;
+    border-bottom: 1px dotted #88b;
+    display: inline-block;
 }
+
+th {
+    text-transform: capitalize;
+}
+
+tr:hover {}
