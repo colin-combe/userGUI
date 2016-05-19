@@ -95,7 +95,7 @@ CLMSUI.buildUserAdmin = function () {
         }
          
         var types = {
-            "id": "text", "user_name": "text", "see_all" :"checkbox", super_user: "checkbox", "email": "text", "newPassword": "text", "delete": "button", "update": "button"
+            "id": "text", "user_name": "text", "see_all" :"checkbox", super_user: "checkbox", "email": "text", "newPassword": "text", "update": "button", "delete": "button"
         };
         function fillInMissingFields (row, types) {
             var fieldArray = d3.entries (types);
@@ -158,8 +158,7 @@ CLMSUI.buildUserAdmin = function () {
             ;
 
             var tbody = sel.select("tbody");
-            console.log ("act psd", psetting.data.slice(0), tbody.selectAll("tr"));
-            var rowJoin = tbody.selectAll("tr").data(psetting.data, function(d,i) { console.log ("d _", d, i, psetting.data); return d[psetting.dataIDField]; });
+            var rowJoin = tbody.selectAll("tr").data(psetting.data, function(d,i) { return d[psetting.dataIDField]; });
             console.log ("newRows", rowJoin.enter());
             var newRows = rowJoin.enter().append("tr");
             console.log ("newRows", newRows);
@@ -226,13 +225,11 @@ CLMSUI.buildUserAdmin = function () {
                     "order": [[ 0, "desc" ]],   // order by first column
                 });
             } else {
-                // mimic addRows
-                var sel = newRows.selectAll("td");
-                var htmls = sel.map (function (row) {
-                    return row.map (function(d) { return d.innerHTML; });
-                });
-                //console.log ("htmls", htmls);
-                //$("#"+baseId).DataTable().rows.add(htmls).draw();
+                // tell DataTables we have added rows (took ages to figure this out)
+                var addRows = newRows.filter(function(r) { return r !== null; });   // first strip out nulls (which represent existing rows)
+                var jqSel = $(addRows[0]);  // turn the d3 selection of rows into a jquery selection of rows
+                //console.log ("jq", newRows, jqSel, jqSel[0]);
+                $("#"+baseId).DataTable().rows.add(jqSel).draw();   // add the jquery selection using .rows()
             }
              
             firstTime = false;
@@ -244,9 +241,27 @@ CLMSUI.buildUserAdmin = function () {
          ;
          
          function addRow (userData) {
-             var newRow = {id: Math.floor(Math.random() * 500).toString() };
-             userData.push (newRow);
-             makeIndTable (tableSettings.users);
+             function addNewUser (data) {
+                 console.log ("data", data);
+                 if (data.error) {
+                     errorDialog ("popErrorDialog", data.error, "Connection Error");
+                 } else {  
+                     userData.push ({id: data.newUser.id});
+                     makeIndTable (tableSettings.users);
+                 }
+             }
+             
+             $.ajax ({
+                type: "GET",
+                url: "./php/newUser.php",
+                dataType: "json",
+                encode: true,
+                success: addNewUser,
+                error: function (jqXhr, textStatus, errorThrown) {
+                    errorDialog ("popErrorDialog", "An Error occurred when trying to access the database for form choices<br>"+errorDateFormat (new Date()), "Connection Error");
+                },
+            });
+
          }
 
      }
