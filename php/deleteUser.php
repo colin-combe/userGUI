@@ -16,19 +16,19 @@ else {
         $isSuperUser = isSuperUser ($dbconn);
 
         if ($isSuperUser) {
-            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email) VALUES('new user 3', FALSE, FALSE, NULL) RETURNING id"); // can't have same user name for two accounts, need fix
-            $result = pg_execute($dbconn, "newUser", []);
+            $deleteUser = pg_prepare($dbconn, "deleteUser", "DELETE FROM users WHERE id = $1");
+            $result = pg_execute($dbconn, "deleteUser", [$_POST["id"]]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         } else {
-            throw new Exception ("You do not have permission to create a new user");
+            throw new Exception ("You don't have permission to delete a user");
         }
 
          pg_query("COMMIT");
-         echo (json_encode(array ("status"=>"success", "newUser"=>$returnRow)));
+         echo (json_encode(array ("status"=>"success", "deletedUser"=>$returnRow)));
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when initialising a new user into the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when removing a user from the database";
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 

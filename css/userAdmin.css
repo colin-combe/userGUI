@@ -127,6 +127,11 @@ H3 {
     border-bottom: 1px solid #88b;
 }
 
+.invalid {
+    border-top: 3px solid red;
+    color: red;
+}
+
 td span[contenteditable] {
     min-width: 3em;
     border-bottom: 1px dotted #88b;

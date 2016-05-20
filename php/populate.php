@@ -13,12 +13,9 @@ else {
         //open connection
         $dbconn = pg_connect($connectionString);
         
-        pg_prepare ($dbconn, "isSuperUser", "SELECT super_user FROM users WHERE id = $1");
-        $result = pg_execute($dbconn, "isSuperUser", [$_SESSION['user_id']]);
-        $firstRow = pg_fetch_assoc ($result); // get first row (should be only one)
-        $isSuperUser = $firstRow["super_user"];
+        $isSuperUser = isSuperUser ($dbconn);
         
-        if ($isSuperUser !== "t") {
+        if ($isSuperUser) {
              pg_prepare ($dbconn, "allUserInfo", "SELECT id, user_name, see_all, super_user, email FROM users");
              $result = pg_execute($dbconn, "allUserInfo", []);
         } else {
@@ -30,15 +27,14 @@ else {
         foreach ($returnedData as $key => $value) {
             // $value["newPassword"] = 'jhjhj'; doesn't work, $value is a copy, not a reference to the original
             $returnedData[$key]["newPassword"] = '';
-            error_log(print_r($value, true));
         }
         
-        error_log(print_r($returnedData, true));
+        //error_log(print_r($returnedData, true));
              
         //close connection
         pg_close($dbconn);
 
-        echo json_encode ($returnedData);
+        echo json_encode (array ("data" => $returnedData, "superuser" => $isSuperUser));
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
