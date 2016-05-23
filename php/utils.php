@@ -20,7 +20,7 @@
         $result = pg_execute($dbconn, "isSuperUser", [$_SESSION['user_id']]);
         $firstRow = pg_fetch_assoc($result); // get first row (should be only one)
         $isSuperUser = $firstRow["super_user"];
-        return $isSuperUser !== "t";
+        return $isSuperUser === "t";
     }
 
     // Turn result set into array of objects
