@@ -30,13 +30,12 @@ else {
         }
         
         //error_log(print_r($returnedData, true));
-        
-        error_log(print_r($_SESSION, true));
+        //error_log(print_r($_SESSION, true));
              
         //close connection
         pg_close($dbconn);
 
-        echo json_encode (array ("data" => $returnedData, "superuser" => $isSuperUser));
+        echo json_encode (array ("status" => "success", "data" => $returnedData, "superuser" => $isSuperUser));
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");

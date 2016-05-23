@@ -82,28 +82,55 @@ CLMSUI.buildUserAdmin = function () {
     }
     canDoImmediately();
     
-     $(document).ready (function () {
-        
-        $.ajax ({
-            type: "GET",
-            url: "./php/readUsers.php",
-            dataType: "json",
-            encode: true,
-            success: gotUserDataResponse,
-            error: function (jqXhr, textStatus, errorThrown) {
-                errorDialog ("popErrorDialog", "An Error occurred when trying to access the database for form choices<br>"+errorDateFormat (new Date()), "Connection Error");
-            },
-        });
-     });
-                        
-     function gotUserDataResponse (response) {
-         console.log ("bleh ", response);
-         if (response.redirect) {
-            window.location.replace (response.redirect);    // redirect if server php passes this field (should be to login page)    
-         }
-         makeTable (response.data, response.superuser);
+    
+    function makeAjaxFunction (php, data, errorMsg, successFunc) {
+         return function() {
+             $.ajax ({
+                type: data ? "POST" : "GET",
+                url: php,
+                data: data,
+                dataType: "json",
+                encode: true,
+                success: function (response, textStatus, jqXhr) {
+                    console.log ("response", response, textStatus);
+                    if (response.redirect) {
+                        window.location.replace (response.redirect);    // redirect if server php passes this field    
+                    }
+                    else if (response.status == "success") {
+                       successFunc (response);
+                    } else {
+                        errorDialog ("popErrorDialog", response.error);
+                    }
+                },
+                error: function (jqXhr, textStatus, errorThrown) {  
+                    errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
+                },
+            });
+         };
      }
     
+    
+     $(document).ready (function () {      
+         return makeAjaxFunction (
+            "php/readUsers.php", 
+            null, 
+            "An Error occurred when trying to read the database",
+            function(response) { makeTable (response.data, response.superuser); }
+         )();
+     });  
+    
+             
+    function d3SelectParent (elem) {
+        return d3.select (elem.parentNode);
+    }
+
+    function truthy (val) {
+        return val === "t" || val === "y" || val === true;
+    }
+    
+    function makeMapFromArray (obj, keyField) {
+        return d3.map (obj, function(entry) { return entry[keyField]; });
+    }
 
     
      function makeTable (userData, isSuperUser) {
@@ -113,15 +140,7 @@ CLMSUI.buildUserAdmin = function () {
                 return $('input', td).prop('checked') ? '1' : '0';
             });
         };
-         
-        function d3SelectParent (elem) {
-            return d3.select (elem.parentNode);
-        }
-         
-        function truthy (val) {
-             return val === "t" || val === "y" || val === true;
-        }
-         
+     
         var types = {
             "id": "text", "user_name": "text", "see_all" :"checkbox", super_user: "checkbox", "email": "text", "newPassword": "text", "update": "button", "delete": "button"
         };
@@ -135,10 +154,6 @@ CLMSUI.buildUserAdmin = function () {
                     row[field.key] = (field.value === "text") ? "" : false;
                 }    
             });
-        }
-         
-        function makeMapFromArray (obj, keyField) {
-            return d3.map (obj, function(entry) { return entry[keyField]; });
         }
          
         function datumiseRow (d, types, typeOrder) {
@@ -157,8 +172,7 @@ CLMSUI.buildUserAdmin = function () {
             var orderedVal = typeOrder.map (function (type) {
                 return orderMap.get (type);
             });
-            
-            console.log ("val", val, orderedVal);
+
             return orderedVal;
         }
          
@@ -173,7 +187,8 @@ CLMSUI.buildUserAdmin = function () {
          
          var firstTime = true;
          d3.values(tableSettings).forEach (function (psetting) { makeIndTable (psetting); });
-         console.log ("userData", userData);
+         //console.log ("userData", userData);
+         
          
         function makeIndTable (psetting) {
             var sel = d3.select (psetting.domid);
@@ -282,7 +297,6 @@ CLMSUI.buildUserAdmin = function () {
                 // tell DataTables we have added rows (took ages to figure this out)
                 var addRows = newRows.filter(function(r) { return r !== null; });   // first strip out nulls (which represent existing rows)
                 var jqSel = $(addRows[0]);  // turn the d3 selection of rows into a jquery selection of rows
-                //console.log ("jq", newRows, jqSel, jqSel[0]);
                 $("#"+baseId).DataTable().rows.add(jqSel).draw();   // add the jquery selection using .rows()
             }
              
@@ -298,7 +312,7 @@ CLMSUI.buildUserAdmin = function () {
              sel = sel || d3.selectAll("table tbody").selectAll("td");
              sel.each (function(d,i) {
                  var reg = regExpPatterns[d.key];
-                 var invalid = reg && !reg.test(d.value);
+                 var invalid = reg && !reg.test(d.value || "");
                  d3.select(this)
                     .classed("invalid", invalid)
                  ;
@@ -325,10 +339,10 @@ CLMSUI.buildUserAdmin = function () {
                      jsonObj[d.key] = d.value;
                  });
                  
-                 var updateUser = makeAjaxFunction (
+                 makeAjaxFunction (
                      "php/updateUser.php", 
                      jsonObj, 
-                     "Update failed on the server before reaching the database<br>"+errorDateFormat (new Date()),
+                     "Update failed on the server before reaching the database",
                      function () { 
                         dArray.forEach (function(d) {
                             d.originalValue = d.value;
@@ -336,16 +350,14 @@ CLMSUI.buildUserAdmin = function () {
                         indicateChangedValues (rowSel.selectAll("td"));
                         enableUpdateButton (rowSel.datum().id);
                      }
-                 );
-                 
-                 updateUser();
+                 )();
              },
              
              deleteUser: function (rowSel, dArray) {
                  var deleteUser = makeAjaxFunction (
                      "php/deleteUser.php", 
                      {id: dArray[0].id}, 
-                     "Delete failed on the server before reaching the database<br>"+errorDateFormat (new Date()),
+                     "Delete failed on the server before reaching the database",
                      function () { removeRow (dArray[0].id); }
                  );
 
@@ -353,49 +365,18 @@ CLMSUI.buildUserAdmin = function () {
              }
          };
          
-         function makeAjaxFunction (php, data, errorMsg, successFunc) {
-             return function() {
-                 $.ajax ({
-                    type: "POST",
-                    url: php,
-                    data: data,
-                    dataType: "json",
-                    encode: true,
-                    success: function (response, textStatus, jqXhr) {
-                        console.log ("db delete success", response, textStatus);
-                        if (response.redirect) {
-                            window.location.replace (response.redirect);    // redirect if server php passes this field    
-                        }
-                        else if (response.status == "success") {
-                           successFunc();
-                        } else {
-                            errorDialog ("popErrorDialog", response.error);
-                        }
-                    },
-                    error: function (jqXhr, textStatus, errorThrown) {  
-                        errorDialog ("popErrorDialog", errorMsg, "Connection Error");
-                    },
-                });
-             };
-         }
-         
          
          function enableUpdateButton (id) {
              var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
              var d3Data = d3Sel.data();
-             console.log ("d3s", d3Sel, d3Data);
              var enabled = d3Data.some (function (d3Datum) {
                  return d3Datum.originalValue != d3Datum.value;
              });
                       
-             if (enabled) {
-                 enabled = d3Data.every (function (d3Datum) {                
-                     var reg = regExpPatterns[d3Datum.key];
-                     return !reg || reg.test(d3Datum.value);
-                 });
-             }
-             
-             console.log ("enabled", enabled,  d3Sel.filter(function(d) { return d.key === "update"; }));
+             enabled = enabled && d3Data.every (function (d3Datum) {                
+                 var reg = regExpPatterns[d3Datum.key];
+                 return !reg || reg.test(d3Datum.value || "");
+             });
              
              d3Sel.filter(function(d) { return d.key === "update"; }).selectAll("button,input").property("disabled", !enabled);
          }
@@ -407,26 +388,15 @@ CLMSUI.buildUserAdmin = function () {
          ;
          
          function addUser (userData) {
-             function addNewUser (data) {
-                 console.log ("data", data);
-                 if (data.error) {
-                     errorDialog ("popErrorDialog", data.error, "Connection Error");
-                 } else {  
-                     userData.push (data.newUser);
-                     makeIndTable (tableSettings.users);
-                 }
-             }
-             
-             $.ajax ({
-                type: "GET",
-                url: "./php/newUser.php",
-                dataType: "json",
-                encode: true,
-                success: addNewUser,
-                error: function (jqXhr, textStatus, errorThrown) {
-                    errorDialog ("popErrorDialog", "An Error occurred when trying to access the database for form choices<br>"+errorDateFormat (new Date()), "Connection Error");
-                },
-            });
+             return makeAjaxFunction (
+                "php/newUser.php", 
+                null, 
+                "An Error occurred when trying to add a new user to the database",
+                function (response) { 
+                    userData.push (response.newUser);
+                    makeIndTable (tableSettings.users);
+                }
+             )();
          }
      }
 };
