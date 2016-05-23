@@ -10,7 +10,6 @@ else {
     
     $dbconn = pg_connect($connectionString);
     try {
-        //$baseDir = $_SESSION["baseDir"];
         pg_query("BEGIN") or die("Could not start transaction\n");
         
         $isSuperUser = isSuperUser ($dbconn);

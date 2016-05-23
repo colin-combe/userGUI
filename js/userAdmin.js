@@ -86,7 +86,7 @@ CLMSUI.buildUserAdmin = function () {
         
         $.ajax ({
             type: "GET",
-            url: "./php/populate.php",
+            url: "./php/readUsers.php",
             dataType: "json",
             encode: true,
             success: gotUserDataResponse,
@@ -125,7 +125,7 @@ CLMSUI.buildUserAdmin = function () {
         var types = {
             "id": "text", "user_name": "text", "see_all" :"checkbox", super_user: "checkbox", "email": "text", "newPassword": "text", "update": "button", "delete": "button"
         };
-        var regExpPatterns = {"user_name": new RegExp (/\S+/i), "email": new RegExp (/\S+@\S+/i), "newPassword": new RegExp (/.{7}/i)};
+        var regExpPatterns = {"user_name": new RegExp (/\S{3}/i), "email": new RegExp (/\S+@\S+|^$/i), "newPassword": new RegExp (/.{7}|^$/i)};
         var typeOrder = d3.keys(types);
          
         function fillInMissingFields (row, types) {
@@ -215,11 +215,9 @@ CLMSUI.buildUserAdmin = function () {
                         .text(function(d) { return d.value || ""; })
                         .on ("input", function(d) { 
                             d.value = d3.select(this).text();
-                            var reg = regExpPatterns [d.key];
-                            if (reg) {
-                                d3.select(this).classed ("invalid", !reg.test(d.value));
-                            }
+                            indicateValidValues (d3.select(this));
                             indicateChangedValues (d3SelectParent(this));   // up to td not span element
+                            enableUpdateButton (d.id);
                         })
                     ;
                 }
@@ -243,11 +241,21 @@ CLMSUI.buildUserAdmin = function () {
                         .on ("click", function (d) {
                             d.value = !!!d.value;
                             indicateChangedValues (d3SelectParent(this));   // up to td not input element
+                            enableUpdateButton (d.id);
                         })
                     ;
                 }
             });
             
+            // Turn update/delete buttons into JQuery-UI styled buttons
+            var d3ButtonSel = newCells.selectAll("input[type='button']");
+            var jqButtonSel = [].concat.apply([], d3ButtonSel);
+            $(jqButtonSel).button();
+            
+            // disable update button in newly added rows
+            newRows.each (function (d,i) { enableUpdateButton (d.id); });
+            
+            // set contenteditable on appropriate cells
             newCells
                 .select("span")
                 .filter (function(d) { return psetting.editable.has (d.key); })
@@ -286,6 +294,17 @@ CLMSUI.buildUserAdmin = function () {
              sel.classed ("changedValue", function(d) { return d.value !== d.originalValue; });
          }
          
+         function indicateValidValues (sel) {
+             sel = sel || d3.selectAll("table tbody").selectAll("td");
+             sel.each (function(d,i) {
+                 var reg = regExpPatterns[d.key];
+                 var invalid = reg && !reg.test(d.value);
+                 d3.select(this)
+                    .classed("invalid", invalid)
+                 ;
+             });
+         }
+         
          function removeRow (id) {
              var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).classed ("toBeRemoved", true);
              var deletedData = d3Sel.datum();
@@ -306,62 +325,80 @@ CLMSUI.buildUserAdmin = function () {
                      jsonObj[d.key] = d.value;
                  });
                  
+                 var updateUser = makeAjaxFunction (
+                     "php/updateUser.php", 
+                     jsonObj, 
+                     "Update failed on the server before reaching the database<br>"+errorDateFormat (new Date()),
+                     function () { 
+                        dArray.forEach (function(d) {
+                            d.originalValue = d.value;
+                        });
+                        indicateChangedValues (rowSel.selectAll("td"));
+                        enableUpdateButton (rowSel.datum().id);
+                     }
+                 );
+                 
+                 updateUser();
+             },
+             
+             deleteUser: function (rowSel, dArray) {
+                 var deleteUser = makeAjaxFunction (
+                     "php/deleteUser.php", 
+                     {id: dArray[0].id}, 
+                     "Delete failed on the server before reaching the database<br>"+errorDateFormat (new Date()),
+                     function () { removeRow (dArray[0].id); }
+                 );
+
+                 areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", deleteUser);
+             }
+         };
+         
+         function makeAjaxFunction (php, data, errorMsg, successFunc) {
+             return function() {
                  $.ajax ({
                     type: "POST",
-                    url: "php/updateUser.php",
-                    data: jsonObj,
+                    url: php,
+                    data: data,
                     dataType: "json",
                     encode: true,
                     success: function (response, textStatus, jqXhr) {
-                        console.log ("db update success", response, textStatus);
+                        console.log ("db delete success", response, textStatus);
                         if (response.redirect) {
                             window.location.replace (response.redirect);    // redirect if server php passes this field    
                         }
                         else if (response.status == "success") {
-                            console.log ("success", response);
-                            // update was successful, replace original values with current values and consequently remove cell marking
-                            dArray.forEach (function(d) {
-                                d.originalValue = d.value;
-                            });
-                            indicateChangedValues (rowSel.selectAll("td"));
+                           successFunc();
                         } else {
                             errorDialog ("popErrorDialog", response.error);
                         }
                     },
                     error: function (jqXhr, textStatus, errorThrown) {  
-                        errorDialog ("popErrorDialog", "Update failed on the server before reaching the database<br>"+errorDateFormat (new Date()), "Connection Error");
+                        errorDialog ("popErrorDialog", errorMsg, "Connection Error");
                     },
                 });
-             },
-             
-             deleteUser: function (rowSel, dArray) {
-                 var deleteUser = function () {
-                     $.ajax ({
-                        type: "POST",
-                        url: "php/deleteUser.php",
-                        data: {id : dArray[0].id},
-                        dataType: "json",
-                        encode: true,
-                        success: function (response, textStatus, jqXhr) {
-                            console.log ("db delete success", response, textStatus);
-                            if (response.redirect) {
-                                window.location.replace (response.redirect);    // redirect if server php passes this field    
-                            }
-                            else if (response.status == "success") {
-                               removeRow (dArray[0].id);
-                            } else {
-                                errorDialog ("popErrorDialog", response.error);
-                            }
-                        },
-                        error: function (jqXhr, textStatus, errorThrown) {  
-                            errorDialog ("popErrorDialog", "Delete failed on the server before reaching the database<br>"+errorDateFormat (new Date()), "Connection Error");
-                        },
-                    });
-                 };
-
-                 areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", deleteUser);
+             };
+         }
+         
+         
+         function enableUpdateButton (id) {
+             var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
+             var d3Data = d3Sel.data();
+             console.log ("d3s", d3Sel, d3Data);
+             var enabled = d3Data.some (function (d3Datum) {
+                 return d3Datum.originalValue != d3Datum.value;
+             });
+                      
+             if (enabled) {
+                 enabled = d3Data.every (function (d3Datum) {                
+                     var reg = regExpPatterns[d3Datum.key];
+                     return !reg || reg.test(d3Datum.value);
+                 });
              }
-         };
+             
+             console.log ("enabled", enabled,  d3Sel.filter(function(d) { return d.key === "update"; }));
+             
+             d3Sel.filter(function(d) { return d.key === "update"; }).selectAll("button,input").property("disabled", !enabled);
+         }
          
          
          d3.select("#addNewUser")
@@ -375,7 +412,7 @@ CLMSUI.buildUserAdmin = function () {
                  if (data.error) {
                      errorDialog ("popErrorDialog", data.error, "Connection Error");
                  } else {  
-                     userData.push ({id: data.newUser.id});
+                     userData.push (data.newUser);
                      makeIndTable (tableSettings.users);
                  }
              }

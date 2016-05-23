@@ -16,8 +16,9 @@ else {
         $isSuperUser = isSuperUser ($dbconn);
 
         if ($isSuperUser) {
-            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email) VALUES('new user 3', FALSE, FALSE, NULL) RETURNING id"); // can't have same user name for two accounts, need fix
-            $result = pg_execute($dbconn, "newUser", []);
+            $tempUser = $_SESSION['session_name'].uniqid();
+            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email) VALUES($1, FALSE, FALSE, NULL) RETURNING id, user_name"); // can't have same user name for two accounts, need fix
+            $result = pg_execute($dbconn, "newUser", [$tempUser]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         } else {
             throw new Exception ("You do not have permission to create a new user");

@@ -30,6 +30,8 @@ else {
         }
         
         //error_log(print_r($returnedData, true));
+        
+        error_log(print_r($_SESSION, true));
              
         //close connection
         pg_close($dbconn);
