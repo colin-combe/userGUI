@@ -15,15 +15,19 @@ CLMSUI.buildUserAdmin = function () {
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
     function constructDialogMessage (dialogID, msg, title) {
-        var msgs = msg.split("<br>");
-        var dialogParas = d3.select("body").append("div")
+        var dialogParas = d3.select("body").select("#"+dialogID);
+        if (dialogParas.empty()) {
+            dialogParas = d3.select("body").append("div").attr("id", dialogID);
+        }
+        dialogParas.selectAll("p").remove();
+        dialogParas
             .attr("id", dialogID)
             .attr("title", title)
-            .selectAll("p").data(msgs)
-        ;
-        dialogParas.enter()
-            .append("p")
-            .html (function(d) { return d; })
+            .selectAll("p")
+            .data(msg.split("<br>"))
+            .enter()
+                .append("p")
+                .html (function(d) { return d; })
         ;
     }
     
@@ -31,33 +35,31 @@ CLMSUI.buildUserAdmin = function () {
         msg = msg.concat("<A href='https://github.com/Rappsilber-Laboratory/' target='_blank'>Rappsilber Lab GitHub</A>");
         constructDialogMessage (dialogID, msg, title || "Database Error");
 
-        $(function() { 
-            $("#"+dialogID).dialog({
-                modal:true,
-            });
+        $("#"+dialogID).dialog({
+            modal:true,
         });
     }
     
     function areYouSureDialog (dialogID, msg, title, yesFunc) {
         constructDialogMessage (dialogID, msg, title || "Confirm");
 
-        $(function() { 
-            $("#"+dialogID).dialog({
-                modal:true,
-                open: function () {
-                    // http://stackoverflow.com/questions/1793592/jquery-ui-dialog-button-focus
-                    $('.ui-dialog :button').blur();
+        $("#"+dialogID).dialog({
+            modal:true,
+            open: function () {
+                // http://stackoverflow.com/questions/1793592/jquery-ui-dialog-button-focus
+                $('.ui-dialog :button').blur();
+            },
+            buttons: {
+                "Proceed with Delete": function () {
+                    $(this).dialog("close");
+                    $(this).dialog("destroy").remove();
+                    yesFunc();
                 },
-                buttons: {
-                    "Proceed with Delete": function () {
-                        $(this).dialog("close");
-                        yesFunc();
-                    },
-                    "Cancel This Action": function () {
-                        $(this).dialog("close");
-                    }
-                },
-            });
+                "Cancel This Action": function () {
+                    $(this).dialog("close");
+                    $(this).dialog("destroy").remove();
+                }
+            },
         });
     }
     
