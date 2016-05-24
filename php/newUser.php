@@ -17,7 +17,7 @@ else {
 
         if ($isSuperUser) {
             $tempUser = $_SESSION['session_name'].uniqid();
-            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email) VALUES($1, FALSE, FALSE, NULL) RETURNING id, user_name"); // can't have same user name for two accounts, need fix
+            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email, max_aas, max_spectra) VALUES($1, FALSE, FALSE, NULL, 100000000, 100000) RETURNING id, user_name");
             $result = pg_execute($dbconn, "newUser", [$tempUser]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         } else {
@@ -29,7 +29,7 @@ else {
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when initialising a new user into the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 

@@ -10,22 +10,27 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    //console.disableLogging();
+    console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
-    function errorDialog (dialogID, msg, title) {
+    function constructDialogMessage (dialogID, msg, title) {
         var msgs = msg.split("<br>");
-        msgs.push("<A href='https://github.com/Rappsilber-Laboratory/' target='_blank'>Rappsilber Lab GitHub</A>");
-        var errorDialogParas = d3.select("body").append("div")
+        var dialogParas = d3.select("body").append("div")
             .attr("id", dialogID)
-            .attr("title", title || "Database Error")
+            .attr("title", title)
             .selectAll("p").data(msgs)
         ;
-        errorDialogParas.enter()
+        dialogParas.enter()
             .append("p")
             .html (function(d) { return d; })
         ;
+    }
+    
+    function errorDialog (dialogID, msg, title) {
+        msg = msg.concat("<A href='https://github.com/Rappsilber-Laboratory/' target='_blank'>Rappsilber Lab GitHub</A>");
+        constructDialogMessage (dialogID, msg, title || "Database Error");
+
         $(function() { 
             $("#"+dialogID).dialog({
                 modal:true,
@@ -33,22 +38,13 @@ CLMSUI.buildUserAdmin = function () {
         });
     }
     
-    
     function areYouSureDialog (dialogID, msg, title, yesFunc) {
-        var msgs = msg.split("<br>");
-        var confirmDialogParas = d3.select("body").append("div")
-            .attr("id", dialogID)
-            .attr("title", title || "Confirm")
-            .selectAll("p").data(msgs)
-        ;
-        confirmDialogParas.enter()
-            .append("p")
-            .html (function(d) { return d; })
-        ;
+        constructDialogMessage (dialogID, msg, title || "Confirm");
+
         $(function() { 
             $("#"+dialogID).dialog({
                 modal:true,
-                open: function (event, ui) {
+                open: function () {
                     // http://stackoverflow.com/questions/1793592/jquery-ui-dialog-button-focus
                     $('.ui-dialog :button').blur();
                 },
@@ -65,6 +61,8 @@ CLMSUI.buildUserAdmin = function () {
         });
     }
     
+    
+    // Stuff that can be done before any php/database shenanigans
     function canDoImmediately () {
         // Make buttons
         var buttonData = [
@@ -92,7 +90,7 @@ CLMSUI.buildUserAdmin = function () {
                 dataType: "json",
                 encode: true,
                 success: function (response, textStatus, jqXhr) {
-                    console.log ("response", response, textStatus);
+                    //console.log ("response", response, textStatus);
                     if (response.redirect) {
                         window.location.replace (response.redirect);    // redirect if server php passes this field    
                     }
@@ -110,6 +108,7 @@ CLMSUI.buildUserAdmin = function () {
      }
     
     
+     // Upon document being ready run this function to load in data
      $(document).ready (function () {      
          return makeAjaxFunction (
             "php/readUsers.php", 
@@ -169,11 +168,9 @@ CLMSUI.buildUserAdmin = function () {
             });
             
             var orderMap = makeMapFromArray (val, "key");
-            var orderedVal = typeOrder.map (function (type) {
+            return typeOrder.map (function (type) { // order the values according to typeOrder
                 return orderMap.get (type);
             });
-
-            return orderedVal;
         }
          
         var tableSettings = {
@@ -252,7 +249,7 @@ CLMSUI.buildUserAdmin = function () {
                 else if (elemType === "checkbox") {
                     d3Elem.append("input")
                         .attr ("type", elemType)
-                        .property("checked", d.value === "t" || d.value === "y" || d.value === true)
+                        .property("checked", truthy (d.value))
                         .on ("click", function (d) {
                             d.value = !!!d.value;
                             indicateChangedValues (d3SelectParent(this));   // up to td not input element
