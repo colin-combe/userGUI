@@ -132,6 +132,7 @@ H3 {
 
 td span[contenteditable] {
     min-width: 5em;
+    min-height: 1.4em;
     border: 1px solid transparent;
     border-bottom: 1px dotted #88b;
     display: inline-block;

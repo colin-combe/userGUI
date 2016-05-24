@@ -10,7 +10,7 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    console.disableLogging();
+    //console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
@@ -77,6 +77,9 @@ CLMSUI.buildUserAdmin = function () {
         
         // Add action for back button
         d3.select("#backButton").on("click", function() { window.history.back(); });
+        
+        // http://stackoverflow.com/questions/3519665/disable-automatic-url-detection-for-elements-with-contenteditable-flag-in-ie
+        document.execCommand ("AutoUrlDetect", false, false); // This stops IE9+ auto-linking emails in contenteditable areas
     }
     canDoImmediately();
     
@@ -217,6 +220,13 @@ CLMSUI.buildUserAdmin = function () {
             });
             var newCells = cellJoin.enter().append("td");
             
+            function signalContentChange (d) {
+                d.value = d3.select(this).text();
+                indicateValidValues (d3.select(this));
+                indicateChangedValues (d3SelectParent(this));   // up to td not span element
+                enableUpdateButton (d.id);
+            }
+            
             newCells.each (function (d, i) {
                 var elemType = psetting.types[d.key];
                 //console.log ("elemType", i, d.key, elemType);
@@ -225,12 +235,9 @@ CLMSUI.buildUserAdmin = function () {
                 if (elemType === "text") {
                     d3Elem.append("span")
                         .text(function(d) { return d.value || ""; })
-                        .on ("input", function(d) { 
-                            d.value = d3.select(this).text();
-                            indicateValidValues (d3.select(this));
-                            indicateChangedValues (d3SelectParent(this));   // up to td not span element
-                            enableUpdateButton (d.id);
-                        })
+                        .on ("input", signalContentChange)
+                        .on ("keyup", signalContentChange)
+                        .on ("paste", signalContentChange)
                     ;
                 }
                 else if (elemType === "button") {
