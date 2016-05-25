@@ -35,7 +35,7 @@ else {
         //close connection
         pg_close($dbconn);
 
-        echo json_encode (array ("status" => "success", "data" => $returnedData, "superuser" => $isSuperUser));
+        echo json_encode (array ("status" => "success", "data" => $returnedData, "superuser" => $isSuperUser, "userid" => $_SESSION["user_id"]));
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
