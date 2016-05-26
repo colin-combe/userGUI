@@ -166,7 +166,7 @@ CLMSUI.buildUserAdmin = function () {
     function fillInMissingFields (row, types) {
         var fieldArray = d3.entries (types);
             fieldArray.forEach (function (field) {
-            if (row[field.key] === undefined) {
+            if (row[field.key] === undefined || row[field.key] === null) {
                 row[field.key] = (field.value === "text") ? "" : false;
             }    
         });

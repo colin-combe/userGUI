@@ -14,6 +14,13 @@ else {
         
         $isSuperUser = isSuperUser ($dbconn);
         
+        // replace empty strings with nulls
+        foreach($_POST as $key => $value){
+            if ($value === "") {
+                $_POST[$key] = null;
+            }
+        }
+        
         if ($_POST["newPassword"] && strlen($_POST["newPassword"]) < 7) {
             throw new Exception ("New password must be at least 7 characters long");
         } else {
