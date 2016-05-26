@@ -44,8 +44,12 @@ CLMSUI.buildUserAdmin = function () {
         constructDialogMessage (dialogID, msg, title || "Confirm");
         
         function hardClose () {
-             $(this).dialog("close");
-             $(this).dialog("destroy").remove();
+             $(this).dialog("close").dialog("destroy").remove();
+        }
+        
+        function yesAndHardClose () {
+            hardClose.call (this);  // need to do it this way to pass on 'this' context
+            yesFunc();
         }
 
         $("#"+dialogID).dialog({
@@ -54,13 +58,7 @@ CLMSUI.buildUserAdmin = function () {
                 $('.ui-dialog :button').blur(); // http://stackoverflow.com/questions/1793592/jquery-ui-dialog-button-focus
             },
             buttons: [
-                {
-                    text: yesText, 
-                    click: function () {
-                        hardClose.call (this);  // need to do it this way to pass on 'this' context
-                        yesFunc();
-                    },
-                },
+                { text: yesText, click: yesAndHardClose },
                 { text: noText, click: hardClose }
             ]
         });
@@ -191,16 +189,20 @@ CLMSUI.buildUserAdmin = function () {
         });
     }
     
+    function isDatumValid (d) {
+        var reg = regExpPatterns[d.key];
+        return !reg || reg.test(d.value || "");
+    }
+    
     function enableUpdateButton (id) {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
         var d3Data = d3Sel.data();
         var enabled = d3Data.some (function (d3Datum) {
-         return d3Datum.originalValue != d3Datum.value;
+            return d3Datum.originalValue != d3Datum.value;
         });
 
         enabled = enabled && d3Data.every (function (d3Datum) {                
-         var reg = regExpPatterns[d3Datum.key];
-         return !reg || reg.test(d3Datum.value || "");
+            return isDatumValid (d3Datum);
         });
 
         d3Sel.filter(function(d) { return d.key === "update"; }).selectAll("button,input").property("disabled", !enabled);
@@ -208,9 +210,8 @@ CLMSUI.buildUserAdmin = function () {
     
     function indicateValidValues (sel) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
-        sel.each (function(d,i) {
-            var reg = regExpPatterns[d.key];
-            var invalid = reg && !reg.test(d.value || "");
+        sel.each (function(d) {
+            var invalid = !isDatumValid (d);
             d3.select(this).classed("invalid", invalid);
         });
     }
@@ -231,20 +232,17 @@ CLMSUI.buildUserAdmin = function () {
         var types = {
             id: "text", you: "text", user_name: "text", see_all :"checkbox", super_user: "checkbox", email: "text", newPassword: "text", update: "button", delete: "button"
         };
-        var icons = {you : "ui-icon-person"};
-        var typeOrder = d3.keys(types);
          
         var tableSettings = {
             users: {domid: "#userTable", data: userData, dataIDField: "id",
                     autoWidths: d3.set(["newPassword", "email"]), 
                     editable: d3.set(["newPassword", "email", "user_name"]),
                     columnTypes: types,
-                    columnOrder: typeOrder,
-                    columnIcons: icons
+                    columnOrder:  d3.keys(types),
+                    columnIcons: {you : "ui-icon-person"}
             },
         };
          
-        var firstTime = true;
         d3.values(tableSettings).forEach (function (tableSetting) { makeIndTable (tableSetting); });
          
         function makeIndTable (tableSetting) {
@@ -257,6 +255,9 @@ CLMSUI.buildUserAdmin = function () {
                     .attr("class", "previousTable")
                 ;
             }
+            
+            // has dataTable class already been initialized on this table?
+            var firstTime = !sel.select("table").classed("dataTable");   
             var vcWidth = Math.floor (100.0 / Math.max (1, tableSetting.autoWidths.size()))+"%";
             
             var hrow = sel.select("tr");    // Make column header row
@@ -304,7 +305,7 @@ CLMSUI.buildUserAdmin = function () {
                             // pick data from all cells in row with the right id
                             var rowSel = tbody.selectAll("tr").filter(function(dd) { return dd.id === d.id; });
                             var rowCellData = rowSel.selectAll("td").data();
-                            perUserActions[d.key+"User"](rowCellData);
+                            perUserActions[d.key+"User"](tableSetting.data, rowCellData);
                         })
                     ;
                 }
@@ -359,6 +360,7 @@ CLMSUI.buildUserAdmin = function () {
                 // how to tell DataTables we have removed rows (this was easier)
                 rowJoin.exit().classed ("toBeRemoved", true);
                 $("#"+baseId).DataTable().rows(".toBeRemoved").remove().draw();
+                rowJoin.exit().remove();
             }
             if (!isSuperUser) {
                 var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["see_all", "super_user", "you"], []);
@@ -368,8 +370,11 @@ CLMSUI.buildUserAdmin = function () {
             
             // highlight user's own row, do after datatable 'cos it wipes out existing classes
             newRows.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
-             
-            firstTime = false;
+            
+            d3.select("#addNewUser")
+                .on ("click", function(d) { addUser (tableSetting.data); })
+                .style ("display", isSuperUser ? null : "none")
+             ;
         }
          
          function removeRows (ids, udata) {
@@ -382,7 +387,7 @@ CLMSUI.buildUserAdmin = function () {
          
          
          var perUserActions = {
-             updateUser: function (dArray) {    // userdata should be arg for safety sake
+             updateUser: function (udata, dArray) {    // userdata should be arg for safety sake
                  var jsonObj = {};
                  dArray.forEach (function(d) {
                      jsonObj[d.key] = d.value;
@@ -399,11 +404,11 @@ CLMSUI.buildUserAdmin = function () {
                         });
                         if (removingOwnSuperuserStatus) {
                             isSuperUser = false;
-                            var otherUserIDs = userData
+                            var otherUserIDs = udata
                                 .map(function(uDatum) { return uDatum.id; })
                                 .filter(function(uid) { return uid !== userId; })
                             ;
-                            removeRows (otherUserIDs, userData);
+                            removeRows (otherUserIDs, udata);
                         } else {
                              makeIndTable (tableSettings.users);
                         }
@@ -416,31 +421,25 @@ CLMSUI.buildUserAdmin = function () {
                  }
              },
              
-             deleteUser: function (dArray) {
+             deleteUser: function (udata, dArray) {
                  var deleteUserAjax = makeAjaxFunction (
                      "php/deleteUser.php", 
                      {id: dArray[0].id}, 
                      "Delete failed on the server before reaching the database",
-                     function () { removeRows ([dArray[0].id], userData); }
+                     function () { removeRows ([dArray[0].id], udata); }
                  );
 
                  areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
              }
          };
          
-         
-         d3.select("#addNewUser")
-            .on ("click", function(d) { addUser (userData); })
-            .style ("display", isSuperUser ? null : "none")
-         ;
-         
-         function addUser (userData) {
+         function addUser (udata) {
              return makeAjaxFunction (
                 "php/newUser.php", 
                 null, 
                 "An Error occurred when trying to add a new user to the database",
                 function (response) { 
-                    userData.push (response.newUser);
+                    udata.push (response.newUser);
                     makeIndTable (tableSettings.users);
                 }
              )();
