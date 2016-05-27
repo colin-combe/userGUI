@@ -143,6 +143,21 @@ td span[contenteditable=true]:hover {
      border: 1px dotted #448;
 }
 
+
+/* 
+next two rules from brilliant stackoverflow answer for stopping multiline display in contenteditable area
+http://stackoverflow.com/a/13470210/368214
+*/
+td span[contenteditable=true] br {
+     display: none;
+}
+
+td span[contenteditable=true] p {
+    display: inline;
+    margin: 0;
+}
+
+
 th, td input {
     text-transform: capitalize;
 }

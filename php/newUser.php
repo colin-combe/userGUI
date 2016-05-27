@@ -25,6 +25,10 @@ else {
             $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email, max_aas, max_spectra) VALUES($1, FALSE, FALSE, NULL, 100000000, 100000) RETURNING id, user_name");
             $result = pg_execute($dbconn, "newUser", [$tempUser]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
+            $returnedID = $returnRow["id"];
+            
+            $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
+            $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "1"]);
         } else {
             throw new Exception ("You do not have permission to create a new user");
         }

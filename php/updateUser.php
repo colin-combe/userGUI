@@ -22,8 +22,16 @@ else {
         }
         
         if ($_POST["newPassword"] && strlen($_POST["newPassword"]) < 7) {
-            throw new Exception ("New password must be at least 7 characters long");
+            throw new Exception ("The new password must be at least 7 characters long.");
         } else {
+            
+            // Check for non-unique username here so we can chuck the error gracefully with a user-friendly message rather than some sql constraint error rhubarb
+            $preparedStr = "SELECT COUNT (user_name) FROM users WHERE id <> $1 AND user_name = $2";
+            $uniqueName = pg_prepare($dbconn, "uniqueName", $preparedStr);
+            $result = pg_execute($dbconn, "uniqueName", [$_POST["id"], $_POST["user_name"]]);
+            $returnRow = pg_fetch_assoc ($result);
+            if ($returnRow["count"] > 0) throw new Exception ("The username '".$_POST["user_name"]."' is already taken by another user. Choose another name.");
+            
             $hash = $_POST["newPassword"] ? password_hash ($_POST["newPassword"], PASSWORD_BCRYPT) : "";
 
             if ($isSuperUser) {
