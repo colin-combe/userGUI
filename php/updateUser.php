@@ -12,7 +12,7 @@ else {
     try {
         pg_query("BEGIN") or die("Could not start transaction\n");
         
-        $isSuperUser = isSuperUser ($dbconn);
+        $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
         
         // replace empty strings with nulls
         foreach($_POST as $key => $value){
@@ -35,8 +35,8 @@ else {
             $hash = $_POST["newPassword"] ? password_hash ($_POST["newPassword"], PASSWORD_BCRYPT) : "";
 
             if ($isSuperUser) {
-                $preparedStr = "UPDATE users SET user_name = $2, super_user = $3, see_all = $4, email = $5".($hash ? ", password = $6":"")." WHERE id = $1";
-                $qParams = [$_POST["id"], $_POST["user_name"], $_POST["super_user"], $_POST["see_all"], $_POST["email"], $hash];
+                $preparedStr = "UPDATE users SET user_name = $2, super_user = $3, can_add_search = $4, see_all = $5, email = $6".($hash ? ", password = $7":"")." WHERE id = $1";
+                $qParams = [$_POST["id"], $_POST["user_name"], $_POST["super_user"], $_POST["can_add_search"], $_POST["see_all"], $_POST["email"], $hash];
                 if (!$hash) {
                     array_pop($qParams);
                 }

@@ -13,7 +13,7 @@ else {
         //$baseDir = $_SESSION["baseDir"];
         pg_query("BEGIN") or die("Could not start transaction\n");
         
-        $isSuperUser = isSuperUser ($dbconn);
+        $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
 
         if ($isSuperUser) {
             $deleteUser = pg_prepare($dbconn, "deleteUser", "DELETE FROM users WHERE id = $1");

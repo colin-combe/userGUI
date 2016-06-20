@@ -13,7 +13,7 @@ else {
         //$baseDir = $_SESSION["baseDir"];
         pg_query("BEGIN") or die("Could not start transaction\n");
         
-        $isSuperUser = isSuperUser ($dbconn);
+        $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
 
         if ($isSuperUser) {
             // database has 20 character limit on user_name field, throws sql error if bigger
@@ -22,7 +22,7 @@ else {
             $len = strlen(utf8_decode($tempUser));
             $newuid = substr(uniqid(), max(0, -7 + $len));  // uniqid() is time-based string, use right-most characters if limited as they are most unique
             $tempUser = substr($tempUser.$newuid, 0, 20);   // limit to 20 chars
-            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, super_user, email, max_aas, max_spectra) VALUES($1, FALSE, FALSE, NULL, 100000000, 100000) RETURNING id, user_name");
+            $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, see_all, can_add_search, super_user, email, max_aas, max_spectra) VALUES($1, FALSE, FALSE, FALSE, NULL, 100000000, 100000) RETURNING id, user_name");
             $result = pg_execute($dbconn, "newUser", [$tempUser]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
             $returnedID = $returnRow["id"];

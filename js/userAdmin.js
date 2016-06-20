@@ -14,57 +14,6 @@ CLMSUI.buildUserAdmin = function () {
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
-    function constructDialogMessage (dialogID, msg, title) {
-        var dialogParas = d3.select("body").select("#"+dialogID);
-        if (dialogParas.empty()) {
-            dialogParas = d3.select("body").append("div").attr("id", dialogID);
-        }
-        dialogParas.selectAll("p").remove();
-        dialogParas
-            .attr("id", dialogID)
-            .attr("title", title)
-            .selectAll("p")
-            .data(msg.split("<br>"))
-            .enter()
-                .append("p")
-                .html (function(d) { return d; })
-        ;
-    }
-    
-    function errorDialog (dialogID, msg, title) {
-        msg = msg.concat("<br><A href='https://github.com/Rappsilber-Laboratory/' target='_blank'>Rappsilber Lab GitHub</A>");
-        constructDialogMessage (dialogID, msg, title || "Database Error");
-
-        $("#"+dialogID).dialog({
-            modal:true,
-        });
-    }
-    
-    function areYouSureDialog (dialogID, msg, title, yesText, noText, yesFunc) {
-        constructDialogMessage (dialogID, msg, title || "Confirm");
-        
-        function hardClose () {
-             $(this).dialog("close").dialog("destroy").remove();
-        }
-        
-        function yesAndHardClose () {
-            hardClose.call (this);  // need to do it this way to pass on 'this' context
-            yesFunc();
-        }
-
-        $("#"+dialogID).dialog({
-            modal: true,
-            open: function () {
-                $('.ui-dialog :button').blur(); // http://stackoverflow.com/questions/1793592/jquery-ui-dialog-button-focus
-            },
-            buttons: [
-                { text: yesText, click: yesAndHardClose },
-                { text: noText, click: hardClose }
-            ]
-        });
-    }
-    
-    
     // Stuff that can be done before any php/database shenanigans
     function canDoImmediately () {
         // Make buttons
@@ -103,18 +52,18 @@ CLMSUI.buildUserAdmin = function () {
                 dataType: "json",
                 encode: true,
                 success: function (response, textStatus, jqXhr) {
-                    //console.log ("response", response, textStatus);
+                    console.log ("response", response, textStatus);
                     if (response.redirect) {
                         window.location.replace (response.redirect);    // redirect if server php passes this field    
                     }
                     else if (response.status == "success") {
                        successFunc (response);
                     } else {
-                        errorDialog ("popErrorDialog", response.error);
+                        CLMSUI.jqdialogs.errorDialog ("popErrorDialog", response.error);
                     }
                 },
                 error: function (jqXhr, textStatus, errorThrown) {  
-                    errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
+                    CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
                 },
             });
          };
@@ -230,7 +179,7 @@ CLMSUI.buildUserAdmin = function () {
         });
      
         var types = {
-            id: "text", you: "text", user_name: "text", see_all :"checkbox", super_user: "checkbox", email: "text", newPassword: "text", update: "button", delete: "button"
+            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", email: "text", newPassword: "text", update: "button", delete: "button"
         };
          
         var tableSettings = {
@@ -261,10 +210,16 @@ CLMSUI.buildUserAdmin = function () {
             var vcWidth = Math.floor (100.0 / Math.max (1, tableSetting.autoWidths.size()))+"%";
             
             var hrow = sel.select("tr");    // Make column header row
-            hrow.selectAll("th").data(tableSetting.columnOrder).enter()
+            if (!firstTime) {
+                // DataTables visible() seems to entirely remove columns from a table rather than just css them out of view
+                // so need to make visible hidden columns or .enter will add in new columns we don't want
+                $("#"+baseId).DataTable().columns().visible(true);  
+            }
+            hrow.selectAll("th").data(tableSetting.columnOrder)
+                .enter()
                 .append("th")
-                .text(function(d) { return d.replace ("_", " "); })
-                .filter (function(d,i) { return tableSetting.autoWidths.has(d); })
+                .text(function(d) { return d.replace (/_/g, " "); })    // regex needed to replace multiple "_"
+                .filter (function(d) { return tableSetting.autoWidths.has(d); })
                 .classed ("varWidthCell", true)
                  .style ("width", vcWidth)
             ;
@@ -363,7 +318,7 @@ CLMSUI.buildUserAdmin = function () {
                 rowJoin.exit().remove();
             }
             if (!isSuperUser) {
-                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["see_all", "super_user", "you"], []);
+                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["see_all", "can_add_search", "super_user", "you"], []);
                 // best to hide columns user has no privilege to change - http://stackoverflow.com/a/372503/368214
                 $("#"+baseId).DataTable().columns(superuserOnlyColumns).visible(false);
             }
@@ -372,7 +327,7 @@ CLMSUI.buildUserAdmin = function () {
             newRows.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
             
             d3.select("#addNewUser")
-                .on ("click", function(d) { addUser (tableSetting.data); })
+                .on ("click", function() { addUser (tableSetting.data); })
                 .style ("display", isSuperUser ? null : "none")
              ;
         }
@@ -399,6 +354,7 @@ CLMSUI.buildUserAdmin = function () {
                      jsonObj, 
                      "Update failed on the server before reaching the database",
                      function () { 
+                         console.log ("updated obj", jsonObj);
                         dArray.forEach (function(d) {
                             d.originalValue = d.value;
                         });
@@ -415,7 +371,7 @@ CLMSUI.buildUserAdmin = function () {
                      }
                  );
                  if (removingOwnSuperuserStatus) {
-                     areYouSureDialog ("popErrorDialog", "Removing your own superuser status cannot be undone (by yourself).<br>Are You Sure?", "Please Confirm", "Proceed with Update", "Cancel this Action", updateUserAjax);
+                     CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "Removing your own superuser status cannot be undone (by yourself).<br>Are You Sure?", "Please Confirm", "Proceed with Update", "Cancel this Action", updateUserAjax);
                  } else {
                     updateUserAjax();
                  }
@@ -429,7 +385,7 @@ CLMSUI.buildUserAdmin = function () {
                      function () { removeRows ([dArray[0].id], udata); }
                  );
 
-                 areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
              }
          };
          
