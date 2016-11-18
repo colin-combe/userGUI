@@ -1,13 +1,13 @@
 <?php
 session_start();
-if (!array_key_exists("session_name", $_SESSION) || !$_SESSION['session_name']) {
+include ('utils.php');
+if (empty ($_SESSION['session_name'])) {
     // from http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call
-    echo (json_encode (array ("redirect" => "../searches/login.html")));
+    ajaxLoginRedirect();
 }
 else {
 
     include('../../connectionString.php');
-    include('utils.php');
 
     try {
         //open connection

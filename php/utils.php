@@ -44,4 +44,8 @@
         return $arr;
     }
 
+    function ajaxLoginRedirect () {
+        // from http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call
+         echo (json_encode (array ("redirect" => "../xi3/login.html")));
+    }
 ?>

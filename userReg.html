@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+     <head>
+        <title>Xi User Administration</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
+        <link rel="stylesheet" href="vendor/css/dataTables.jqueryui.css" />
+        <link rel="stylesheet" href="../xi3/css/style.css" />
+        <link rel="stylesheet" href="css/userAdmin.css" />
+        <link rel="stylesheet" href="css/login.css" />
+
+        <script src="vendor/js/jquery-2.2.0.js"></script>
+        <script src="vendor/js/jquery-ui.js"></script>
+        <script src="vendor/js/d3.js"></script>
+        <script src="vendor/js/jquery.dataTables.js"></script>
+         
+        <script src="js/dialogs.js"></script>
+        <script src="js/userAdmin.js"></script>
+         
+         <script src="https://www.google.com/recaptcha/api.js"></script>
+     </head>
+    
+     <body>
+         
+        <header>
+            <h1>Xi New User Registration</h1>
+        </header>
+
+        <div class="login">
+
+              <form id="login_form" name="login_form" method="post" action="./php/newUser2.php" class="login-form">
+                <div class="control-group">
+                    <label for="login-name">Username</label>
+                    <input type="text" value="" placeholder="Username" id="login-name" name="login-name" required/>
+                    <span class="error">&lt; This username does not exist</span>
+                </div>
+
+                <div class="control-group">
+                  <label for="login-pass">Password</label>
+                  <input type="password" value="" placeholder="Password" id="login-pass" name="login-pass" required/>
+                  <span class="error">&lt; Incorrect password</span>
+                </div>
+                  
+                <div class="control-group">
+                  <label for="login-pass">Password</label>
+                  <input type="password" value="" placeholder="Password" id="login-pass2" name="login-pass2" required/>
+                  <span class="error">&lt; Incorrect password</span>
+                </div>
+
+                <input name="Submit" value="Login" type="submit" class="btn btn-1a"/>
+                <div class="g-recaptcha" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
+              </form>
+
+            <script type="text/javascript"> 
+                // divert form submit action to this javascript function
+                $("#login_form").submit (function(e) {
+                    console.log ("captcha", grecaptcha.getResponse());
+                    console.log ("e", e);
+                    ajaxPost (e.target);
+                    e.preventDefault();
+                });
+
+                // when input is changed cancel the display of previous error messages
+                $("input[type='text'],input[type='password']").on("input", function() {
+                    $(".error").css("display", null);
+                });
+
+                function ajaxPost (formElement) {
+                    var zform = $(formElement);
+                    // grab form input field values and put them in a json obj
+                    var json = {redirect: document.referrer};
+                    zform.find("input[type='text'],input[type='password']").each (function() { 
+                        var elem = $(this);
+                        json[elem.attr("name")] = elem.attr("value");
+                    });
+
+                    $.ajax ({
+                        type: zform.attr("method"),
+                        url: zform.attr("action"),
+                        data: json,
+                        dataType: "json",
+                        encode: true,
+                        success: function (data, status, xhr) {
+                            if (data.status === "success" && data.redirect) {   // redirect if login good
+                                window.location.assign (data.redirect);
+                            }
+                            else if (data.status === "fail" && data.field) {    // say which field is wrong if login bad
+                                $("#"+data.field).siblings(".error").css("display", "inline");
+                            }
+                        },
+                        error: function (jqXhr, textStatus, errorThrown) {
+                            console.log ("error args", arguments); // some other error chucked by php
+                        }
+                    });       
+                }
+            </script>
+        </div>
+
+        <footer>
+            <p>© Rappsilber Laboratory, 2016</p>
+        </footer>
+
+    </body>
+</html>
