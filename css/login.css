@@ -18,7 +18,7 @@ label {
     color: #44a;
 }
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], input[type=email] {
     padding-left: 0.5em;
     line-height: 1.4em; /* both needed for cross-browser alignment with label text */
     height: 1.4em;
@@ -40,4 +40,22 @@ input[type=text], input[type=password] {
     padding: 0.2em 0.5em;
     background: yellow;
     border-radius: 0.5em;
+}
+
+.info {
+    color: grey;
+    margin-left: 1em;
+    padding: 0.2em 0.5em;
+}
+
+header, h4 {
+    padding-bottom: 1em;
+}
+
+h4 {
+    font-weight: normal;
+}
+
+.g-recaptcha {
+    margin-bottom: 1em;
 }

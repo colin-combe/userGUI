@@ -7,15 +7,12 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
         <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
-        <link rel="stylesheet" href="vendor/css/dataTables.jqueryui.css" />
         <link rel="stylesheet" href="../xi3/css/style.css" />
         <link rel="stylesheet" href="css/userAdmin.css" />
         <link rel="stylesheet" href="css/login.css" />
 
         <script src="vendor/js/jquery-2.2.0.js"></script>
         <script src="vendor/js/jquery-ui.js"></script>
-        <script src="vendor/js/d3.js"></script>
-        <script src="vendor/js/jquery.dataTables.js"></script>
          
         <script src="js/dialogs.js"></script>
         <script src="js/userAdmin.js"></script>
@@ -28,38 +25,51 @@
         <header>
             <h1>Xi New User Registration</h1>
         </header>
+         
+        <h4>Hotmail/Yahoo/Gmail addresses not allowed. Passwords must be at least 6 characters long.</h4>
 
         <div class="login">
 
               <form id="login_form" name="login_form" method="post" action="./php/newUser2.php" class="login-form">
                 <div class="control-group">
-                    <label for="login-name">Username</label>
-                    <input type="text" value="" placeholder="Username" id="login-name" name="login-name" required/>
-                    <span class="error">&lt; This username does not exist</span>
+                    <label for="email">Email Address</label>
+                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b"  required/>
+                    <span class="error">&lt; Hotmail/Yahoo/Gmail addresses not supported</span>
                 </div>
+                  <!-- oninvalid="this.setCustomValidity('Hotmail/Yahoo/Gmail addresses not supported')" -->
 
                 <div class="control-group">
-                  <label for="login-pass">Password</label>
-                  <input type="password" value="" placeholder="Password" id="login-pass" name="login-pass" required/>
-                  <span class="error">&lt; Incorrect password</span>
+                    <label for="pass1">Password</label>
+                    <input type="password" value="" placeholder="Password" id="pass1" name="pass1" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
+                    <!-- oninvalid="this.setCustomValidity('At least 6 characters required')"S -->
+                    <span class="error">&lt; Passwords don't match</span>
                 </div>
                   
                 <div class="control-group">
-                  <label for="login-pass">Password</label>
-                  <input type="password" value="" placeholder="Password" id="login-pass2" name="login-pass2" required/>
-                  <span class="error">&lt; Incorrect password</span>
+                  <label for="pass2">Repeat Password</label>
+                  <input type="password" value="" placeholder="Repeat Password" id="pass2" name="pass2" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
+                  <span class="error">&lt; Passwords don't match</span>
                 </div>
+                  
+                <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
+                <span class="error">&lt; Please check the captcha form</span>
 
                 <input name="Submit" value="Login" type="submit" class="btn btn-1a"/>
-                <div class="g-recaptcha" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
+
               </form>
+            
+            <div id="msg"></div>
 
             <script type="text/javascript"> 
                 // divert form submit action to this javascript function
                 $("#login_form").submit (function(e) {
                     console.log ("captcha", grecaptcha.getResponse());
                     console.log ("e", e);
-                    ajaxPost (e.target);
+                    if ($("#pass1").prop("value") === $("#pass2").prop("value")) {
+                        ajaxPost (e.target);
+                    } else {
+                        $("#pass1").siblings(".error").css("display", "inline");
+                    }
                     e.preventDefault();
                 });
 
@@ -71,10 +81,12 @@
                 function ajaxPost (formElement) {
                     var zform = $(formElement);
                     // grab form input field values and put them in a json obj
-                    var json = {redirect: document.referrer};
-                    zform.find("input[type='text'],input[type='password']").each (function() { 
+                    var json = {redirect: document.referrer, "g-recaptcha-response": grecaptcha.getResponse()};
+                    console.log ("redirect", document.referrer, formElement);
+                    zform.find("input[type='text'],input[type='email'],input[type='password']").each (function() { 
                         var elem = $(this);
-                        json[elem.attr("name")] = elem.attr("value");
+                        console.log ("elem", elem, elem.attr("name"), elem.prop("value"));
+                        json[elem.attr("name")] = elem.prop("value");
                     });
 
                     $.ajax ({
@@ -84,11 +96,19 @@
                         dataType: "json",
                         encode: true,
                         success: function (data, status, xhr) {
-                            if (data.status === "success" && data.redirect) {   // redirect if login good
-                                window.location.assign (data.redirect);
+                            if (data.status === "success") {
+                                if (data.redirect) {    // redirect if login good
+                                    window.location.assign (data.redirect);
+                                } else if (data.msg) {
+                                    $("#msg").text(data.msg);
+                                }         
                             }
-                            else if (data.status === "fail" && data.field) {    // say which field is wrong if login bad
-                                $("#"+data.field).siblings(".error").css("display", "inline");
+                            else if (data.status === "fail") {
+                                if (data.field) {    // say which field is wrong if login bad
+                                    $("#"+data.field).siblings(".error").css("display", "inline");
+                                } else if (data.msg) {
+                                     $("#msg").text(data.msg);
+                                }
                             }
                         },
                         error: function (jqXhr, textStatus, errorThrown) {
