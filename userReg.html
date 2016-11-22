@@ -7,12 +7,15 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
         <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
+
+        <link rel="stylesheet" href="vendor/css/example.wink.css" />
         <link rel="stylesheet" href="../xi3/css/style.css" />
         <link rel="stylesheet" href="css/userAdmin.css" />
         <link rel="stylesheet" href="css/login.css" />
 
         <script src="vendor/js/jquery-2.2.0.js"></script>
         <script src="vendor/js/jquery-ui.js"></script>
+        <script src="vendor/js/hideShowPassword.js"></script>
          
         <script src="js/dialogs.js"></script>
         <script src="js/userAdmin.js"></script>
@@ -33,22 +36,16 @@
               <form id="login_form" name="login_form" method="post" action="./php/newUser2.php" class="login-form">
                 <div class="control-group">
                     <label for="email">Email Address</label>
-                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b"  required/>
+                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b" required/>
                     <span class="error">&lt; Hotmail/Yahoo/Gmail addresses not supported</span>
                 </div>
-                  <!-- oninvalid="this.setCustomValidity('Hotmail/Yahoo/Gmail addresses not supported')" -->
 
                 <div class="control-group">
                     <label for="pass1">Password</label>
                     <input type="password" value="" placeholder="Password" id="pass1" name="pass1" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
-                    <!-- oninvalid="this.setCustomValidity('At least 6 characters required')"S -->
-                    <span class="error">&lt; Passwords don't match</span>
-                </div>
-                  
-                <div class="control-group">
-                  <label for="pass2">Repeat Password</label>
-                  <input type="password" value="" placeholder="Repeat Password" id="pass2" name="pass2" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
-                  <span class="error">&lt; Passwords don't match</span>
+                    <span class="error">&lt; At least 6 characters required</span>
+                    <input type="checkbox" id="show-password">
+                    <label for="show-password">Show password</label>
                 </div>
                   
                 <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
@@ -61,15 +58,20 @@
             <div id="msg"></div>
 
             <script type="text/javascript"> 
+
+                // Example 3:
+                // - When checkbox changes, toggle password
+                //   visibility based on its 'checked' property
+                $('#show-password').change(function(){
+                  $('#pass1').hideShowPassword($(this).prop('checked'));
+                });
+
+                
                 // divert form submit action to this javascript function
                 $("#login_form").submit (function(e) {
                     console.log ("captcha", grecaptcha.getResponse());
                     console.log ("e", e);
-                    if ($("#pass1").prop("value") === $("#pass2").prop("value")) {
-                        ajaxPost (e.target);
-                    } else {
-                        $("#pass1").siblings(".error").css("display", "inline");
-                    }
+                    ajaxPost (e.target);
                     e.preventDefault();
                 });
 

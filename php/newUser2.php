@@ -31,20 +31,8 @@ try {
     if (isset($_POST['pass1'])){
         $pword1 = $_POST['pass1'];
     }
-    $pword2 = "";
-    if (isset($_POST['pass2'])){
-        $pword2 = $_POST['pass2'];
-    }
     if (!filter_var ($pword1, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/.{6,}/')))) {
         echo (json_encode(array ("status"=>"fail", "field"=> "pass1")));
-        exit;
-    }
-    if (!filter_var ($pword2, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/.{6,}/')))) {
-        echo (json_encode(array ("status"=>"fail", "field"=> "pass2")));
-        exit;
-    }
-    if ($pword1 !== $pword2) {
-        echo (json_encode(array ("status"=>"fail", "field"=> "pass2")));
         exit;
     }
     
@@ -56,6 +44,41 @@ try {
     if (intval($responseKeys["success"]) !== 1) {
         echo (json_encode(array ("status"=>"fail", "msg"=> "Spammer.")));
     } else {
+        
+        require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
+        require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
+
+        $mail               = new PHPMailer();
+        $mail->IsSMTP();                                        // telling the class to use SMTP
+        $mail->SMTPDebug    = 0;                                // 1 enables SMTP debug information (for testing) - but farts it out to echo, knackering json
+        $mail->SMTPAuth     = true;                             // enable SMTP authentication
+        $mail->SMTPSecure   = "tls";                            // sets the prefix to the servier
+        $mail->Host         = "smtp.gmail.com";                 // sets GMAIL as the SMTP server
+        $mail->Port         = 587;                              // set the SMTP port for the GMAIL server
+        
+        $mail->Username     = $gmailAccount.'@gmail.com';           // GMAIL username
+        $mail->Password     = $gmailPassword;           // GMAIL password
+        error_log (print_r ($mail, true));
+        
+        $mail->SetFrom($gmailAccount.'@gmail.com', 'Xi');
+        $mail->Subject    = "Test Send Mails";
+        $mail->MsgHTML("Password: ".$pword1);
+        $mail->AddAddress($email, "USER NAME");
+        error_log (print_r ($mail, true));
+
+        // $mail->AddAttachment("images/phpmailer.gif");        // attachment
+        // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
+
+        if(!$mail->Send()) {
+             error_log (print_r ("failsend", true));
+            echo json_encode (array ("status"=>"fail", "error"=>"Mailer Error: ".$mail->ErrorInfo));
+        } 
+        else {
+            $json = json_encode(array ("status"=>"success", "msg"=> "Accepted."));
+            echo ($json);
+        }
+        
+        /*
         $headers = $headers = 'From: webmaster@example.com' . "\r\n" .
             'Reply-To: webmaster@example.com' . "\r\n" .
             'X-Mailer: PHP/' . phpversion()
@@ -65,6 +88,7 @@ try {
         
         $json = json_encode(array ("status"=>"success", "msg"=> "Accepted."));
         echo ($json);
+        */
     }
 } catch (Exception $e) {
      $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";

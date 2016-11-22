@@ -24,6 +24,10 @@ input[type=text], input[type=password], input[type=email] {
     height: 1.4em;
 }
 
+input[type=checkbox] {
+    margin-left: 1em;
+}
+
 .login input:-ms-input-placeholder { /* Internet Explorer 10-11 */
    color: #888;
 }
@@ -31,6 +35,12 @@ input[type=text], input[type=password], input[type=email] {
 .login input::-moz-placeholder { /* Firefox */
     color: #888;
     opacity: 1;
+}
+
+input:required:invalid, input:focus:invalid {
+    /* insert your own styles for invalid form input */
+    background: #fee;
+    border-color: red;
 }
 
 .error {
