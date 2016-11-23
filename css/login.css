@@ -1,15 +1,17 @@
+body {
+    margin: 1em 2em;
+    font-size: 1em;
+}
+
 label { 
     display: inline-block;
     min-width: 8em;
+    line-height: 1.4em;
 }
 
 .control-group {
     margin-bottom: 1em;
     color: #44a;
-}
-
-.pageMargin {
-    margin: 1.4em;
 }
 
 .login input {
@@ -43,13 +45,16 @@ input:required:invalid, input:focus:invalid {
     border-color: red;
 }
 
-.error {
+input:required:invalid ~ span, input:focus:invalid ~ span {
+    /* insert your own styles for invalid form input */
+    display: inline;
+}
+
+.error, .error2 {
     display: none;
     color: red;
     margin-left: 1em;
-    padding: 0.2em 0.5em;
-    background: yellow;
-    border-radius: 0.5em;
+    padding: 0em 0.5em;
 }
 
 .info {
@@ -68,4 +73,13 @@ h4 {
 
 .g-recaptcha {
     margin-bottom: 1em;
+    display: inline-block;
+}
+
+footer > p::before {
+    content: "© Rappsilber Laboratory, 2016";
+}
+
+hr.wideDivider {
+    margin: 2em 0em;
 }

@@ -16,6 +16,8 @@ else {
         $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
 
         if ($isSuperUser) {
+            $deleteUserInGroup = pg_prepare($dbconn, "deleteUserInGroup", "DELETE FROM user_in_group WHERE user_id = $1");
+            $result = pg_execute($dbconn, "deleteUserInGroup", [$_POST["id"]]);
             $deleteUser = pg_prepare($dbconn, "deleteUser", "DELETE FROM users WHERE id = $1");
             $result = pg_execute($dbconn, "deleteUser", [$_POST["id"]]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)

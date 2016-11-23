@@ -1,24 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
      <head>
-        <title>Xi User Administration</title>
+        <title>Xi New User Self-Registration</title>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-        <link rel="stylesheet" href="vendor/css/jquery-ui.css" />
 
         <link rel="stylesheet" href="vendor/css/example.wink.css" />
         <link rel="stylesheet" href="../xi3/css/style.css" />
-        <link rel="stylesheet" href="css/userAdmin.css" />
         <link rel="stylesheet" href="css/login.css" />
 
         <script src="vendor/js/jquery-2.2.0.js"></script>
-        <script src="vendor/js/jquery-ui.js"></script>
         <script src="vendor/js/hideShowPassword.js"></script>
-         
-        <script src="js/dialogs.js"></script>
-        <script src="js/userAdmin.js"></script>
          
          <script src="https://www.google.com/recaptcha/api.js"></script>
      </head>
@@ -26,14 +20,20 @@
      <body>
          
         <header>
-            <h1>Xi New User Registration</h1>
+            <h1>Xi New User Self-Registration</h1>
         </header>
-         
-        <h4>Hotmail/Yahoo/Gmail addresses not allowed. Passwords must be at least 6 characters long.</h4>
 
         <div class="login">
 
               <form id="login_form" name="login_form" method="post" action="./php/newUser2.php" class="login-form">
+                  
+                <div class="control-group">
+                    <label for="email">Pick Username</label>
+                    <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9-_]{4,16}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Between 4 and 16 Alphanumeric characters only please')" required/>
+                    <span class="error">&lt; Between 4 and 16 Alphanumeric characters only please</span>
+                    <span class="error2"></span>
+                </div>
+                  
                 <div class="control-group">
                     <label for="email">Email Address</label>
                     <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b" required/>
@@ -42,7 +42,7 @@
 
                 <div class="control-group">
                     <label for="pass1">Password</label>
-                    <input type="password" value="" placeholder="Password" id="pass1" name="pass1" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
+                    <input type="password" value="" placeholder="Password" id="pass" name="pass" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
                     <span class="error">&lt; At least 6 characters required</span>
                     <input type="checkbox" id="show-password">
                     <label for="show-password">Show password</label>
@@ -50,7 +50,8 @@
                   
                 <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
                 <span class="error">&lt; Please check the captcha form</span>
-
+                <br/>
+                  
                 <input name="Submit" value="Login" type="submit" class="btn btn-1a"/>
 
               </form>
@@ -63,7 +64,7 @@
                 // - When checkbox changes, toggle password
                 //   visibility based on its 'checked' property
                 $('#show-password').change(function(){
-                  $('#pass1').hideShowPassword($(this).prop('checked'));
+                  $('#pass').hideShowPassword($(this).prop('checked'));
                 });
 
                 
@@ -71,14 +72,16 @@
                 $("#login_form").submit (function(e) {
                     console.log ("captcha", grecaptcha.getResponse());
                     console.log ("e", e);
+                    $(".error2").css("display", "none");
                     ajaxPost (e.target);
                     e.preventDefault();
                 });
 
                 // when input is changed cancel the display of previous error messages
+                /*
                 $("input[type='text'],input[type='password']").on("input", function() {
-                    $(".error").css("display", null);
-                });
+                    $
+                    */
 
                 function ajaxPost (formElement) {
                     var zform = $(formElement);
@@ -107,7 +110,11 @@
                             }
                             else if (data.status === "fail") {
                                 if (data.field) {    // say which field is wrong if login bad
-                                    $("#"+data.field).siblings(".error").css("display", "inline");
+                                    if (data.msg) {
+                                        $("#"+data.field).siblings(".error2").text(data.msg).css("display", "inline");
+                                    } else {
+                                        $("#"+data.field).siblings(".error").css("display", "inline");
+                                    }
                                 } else if (data.msg) {
                                      $("#msg").text(data.msg);
                                 }
@@ -122,7 +129,7 @@
         </div>
 
         <footer>
-            <p>© Rappsilber Laboratory, 2016</p>
+            <p></p>
         </footer>
 
     </body>
