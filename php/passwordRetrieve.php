@@ -51,13 +51,20 @@ try {
             // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
 
             if ($count == 1) {
-                $token = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
-                pg_prepare ($dbconn, "setToken", "UPDATE users SET token = $2 WHERE id = $1");
-                $result = pg_execute ($dbconn, "setToken", [$id, $token]);
+                $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
+                pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2 WHERE id = $1");
+                $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
                 error_log (print_r (pg_fetch_assoc ($result), true));
-                $mail->MsgHTML("Use this link to reset your Xi password<br><A href='http://www.xi3.bio.ed.ac.uk'>".$token."</A>");
-                error_log (print_r ($token, true));
+                
+                $url = "http://localhost/userGUI/passwordReset.html?ptoken=".$ptoken;
+                $mail->MsgHTML("Use this link to reset your Xi password<br><A href='".$url."'>".$url."</A>");
+                error_log (print_r ($ptoken, true));
                 error_log (print_r ($id, true));
+                pg_prepare ($dbconn, "getToken", "SELECT * FROM users WHERE ptoken = $1");
+                $result2 = pg_execute ($dbconn, "getToken", [$ptoken]);
+                error_log (print_r (pg_fetch_assoc ($result2), true));
+                pg_query("COMMIT");
+                
             } else {
                 $mail->MsgHTML("Someone is trying to access an account with this email at xi.bio.ed.ac.uk");
             }
