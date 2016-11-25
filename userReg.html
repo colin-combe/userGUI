@@ -25,7 +25,7 @@
 
         <div class="login">
 
-              <form id="login_form" name="login_form" method="post" action="./php/newUser2.php" class="login-form">
+              <form id="register_form" name="register_form" method="post" action="./php/newUser2.php" class="login-form">
                   
                 <div class="control-group">
                     <label for="email">Pick Username</label>
@@ -52,7 +52,7 @@
                 <span class="error">&lt; Please check the captcha form</span>
                 <br/>
                   
-                <input name="Submit" value="Login" type="submit" class="btn btn-1a"/>
+                <input name="Submit" value="Register" type="submit" class="btn btn-1a"/>
 
               </form>
             
@@ -69,7 +69,7 @@
 
                 
                 // divert form submit action to this javascript function
-                $("#login_form").submit (function(e) {
+                $("#register_form").submit (function(e) {
                     console.log ("captcha", grecaptcha.getResponse());
                     console.log ("e", e);
                     $(".error2").css("display", "none");

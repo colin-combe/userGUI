@@ -48,4 +48,41 @@
         // from http://stackoverflow.com/questions/199099/how-to-manage-a-redirect-request-after-a-jquery-ajax-call
          echo (json_encode (array ("redirect" => "../xi3/login.html")));
     }
+
+    function validatePostVar ($varName, $regexp, $isEmail=false, $altFormFieldID=null, $msg=null) {
+        $a = "";
+        if (isset($_POST[$varName])){
+            $a = $_POST[$varName];
+        }
+        if (!$a || ($isEmail && !filter_var ($a, FILTER_VALIDATE_EMAIL)) || !filter_var ($a, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => $regexp)))) {
+            if (isset($msg)) {
+                echo (json_encode(array ("status"=>"fail", "msg"=> $msg)));
+            } else {
+                echo (json_encode(array ("status"=>"fail", "field"=> (isset($altFormFieldID) ? $altFormFieldID: $varName))));
+            }
+            exit;
+        }
+        return $a;
+    }
+
+    function makePhpMailerObj ($myMailInfo, $toEmail, $subject="Test Send Mails") {
+        $mail               = new PHPMailer();
+        $mail->IsSMTP();                                        // telling the class to use SMTP
+        $mail->SMTPDebug    = 0;                                // 1 enables SMTP debug information (for testing) - but farts it out to echo, knackering json
+        $mail->SMTPAuth     = true;                             // enable SMTP authentication
+        $mail->SMTPSecure   = "tls";                            // sets the prefix to the servier
+        $mail->Host         = $myMailInfo["host"];                 // sets GMAIL as the SMTP server
+        $mail->Port         = $myMailInfo["port"];                              // set the SMTP port for the GMAIL server
+
+        $mail->Username     = $myMailInfo["account"];     // MAIL username
+        $mail->Password     = $myMailInfo["password"];    // MAIL password
+
+        $mail->SetFrom($myMailInfo["account"], 'Xi');
+        $mail->Subject    = $subject;
+        $mail->AddAddress($toEmail, "USER NAME");
+        
+        // $mail->AddAttachment("images/phpmailer.gif");        // attachment
+        // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
+        return $mail;
+    }
 ?>

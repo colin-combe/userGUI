@@ -4,46 +4,12 @@ include ('utils.php');
 
 try {
     error_log (print_r ($_POST, true));
+
+    $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
+    $email = validatePostVar ("email", '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/', true);
+    $username = validatePostVar ("username", '/^[a-zA-Z0-9-_]{4,16}/');
+    $pword = validatePostVar ("pass", '/.{6,}/');
     
-    $captcha = "";
-    if (isset($_POST['g-recaptcha-response'])){
-        $captcha=$_POST['g-recaptcha-response'];
-    }
-    if(!$captcha){
-      echo (json_encode(array ("status"=>"fail", "field"=> "recaptchaWidget")));
-      exit;
-    }
-    
-    // validate email
-    $email = "";
-    if (isset($_POST['email'])){
-        $email = $_POST['email'];
-    }
-    if (!$email || !filter_var ($email, FILTER_VALIDATE_EMAIL) 
-        || !filter_var ($email, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/')))) {
-        echo (json_encode(array ("status"=>"fail", "field"=> "email")));
-        exit;
-    }
-    
-    // validate username
-    $username = "";
-    if (isset($_POST['username'])){
-        $username = $_POST['username'];
-    }
-    if (!$username || !filter_var ($username, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/^[a-zA-Z0-9-_]{4,16}/')))) {
-        echo (json_encode(array ("status"=>"fail", "field"=> "username")));
-        exit;
-    }
-    
-    // validate passwords
-    $pword = "";
-    if (isset($_POST['pass'])){
-        $pword = $_POST['pass'];
-    }
-    if (!$pword || !filter_var ($pword, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/.{6,}/')))) {
-        echo (json_encode(array ("status"=>"fail", "field"=> "pass")));
-        exit;
-    }
     
     // validate captcha
     $ip = $_SERVER['REMOTE_ADDR'];
@@ -86,25 +52,9 @@ try {
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
 
-        $mail               = new PHPMailer();
-        $mail->IsSMTP();                                        // telling the class to use SMTP
-        $mail->SMTPDebug    = 0;                                // 1 enables SMTP debug information (for testing) - but farts it out to echo, knackering json
-        $mail->SMTPAuth     = true;                             // enable SMTP authentication
-        $mail->SMTPSecure   = "tls";                            // sets the prefix to the servier
-        $mail->Host         = "smtp.gmail.com";                 // sets GMAIL as the SMTP server
-        $mail->Port         = 587;                              // set the SMTP port for the GMAIL server
-
-        $mail->Username     = $gmailAccount.'@gmail.com';           // GMAIL username
-        $mail->Password     = $gmailPassword;           // GMAIL password
-
-        $mail->SetFrom($gmailAccount.'@gmail.com', 'Xi');
-        $mail->Subject    = "Test Send Mails";
-        $mail->MsgHTML("Password: ".$pword);
-        $mail->AddAddress($email, "USER NAME");
-
-        // $mail->AddAttachment("images/phpmailer.gif");        // attachment
-        // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
-
+        $mail = makePHPMailerObj ($mailInfo, $email, "Xi Registration");
+        $mail->MsgHTML("You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.");
+        
         if(!$mail->Send()) {
              error_log (print_r ("failsend", true));
             echo json_encode (array ("status"=>"fail", "error"=>"Mailer Error: ".$mail->ErrorInfo));
@@ -113,18 +63,6 @@ try {
             $json = json_encode(array ("status"=>"success", "msg"=> "New user ".$username." added", "username"=>$username));
             echo ($json);
         }
-
-        /*
-        $headers = $headers = 'From: webmaster@example.com' . "\r\n" .
-            'Reply-To: webmaster@example.com' . "\r\n" .
-            'X-Mailer: PHP/' . phpversion()
-        ;
-        $accept = mail ($email, "Xi Registration", "Password: ".$pword1, $headers);
-        error_log (print_r ($accept, true));
-
-        $json = json_encode(array ("status"=>"success", "msg"=> "Accepted."));
-        echo ($json);
-        */
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");

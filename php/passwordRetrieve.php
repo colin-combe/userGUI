@@ -5,14 +5,7 @@ include ('utils.php');
 try {
     error_log (print_r ($_POST, true));
     
-    $pid = "";
-    if (isset($_POST['password-retrieve'])){
-        $pid=$_POST['password-retrieve'];
-    }
-    if(!$pid){
-      echo (json_encode(array ("status"=>"fail", "field"=> "password-retrieve")));
-      exit;
-    }
+    $pid = validatePostVar ("password-retrieve", '/.{6,}/');
         
     $dbconn = pg_connect($connectionString);
     try {
@@ -32,23 +25,7 @@ try {
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
 
         if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
-            $mail               = new PHPMailer();
-            $mail->IsSMTP();                                        // telling the class to use SMTP
-            $mail->SMTPDebug    = 0;                                // 1 enables SMTP debug information (for testing) - but farts it out to echo, knackering json
-            $mail->SMTPAuth     = true;                             // enable SMTP authentication
-            $mail->SMTPSecure   = "tls";                            // sets the prefix to the servier
-            $mail->Host         = "smtp.gmail.com";                 // sets GMAIL as the SMTP server
-            $mail->Port         = 587;                              // set the SMTP port for the GMAIL server
-
-            $mail->Username     = $gmailAccount.'@gmail.com';           // GMAIL username
-            $mail->Password     = $gmailPassword;           // GMAIL password
-
-            $mail->SetFrom($gmailAccount.'@gmail.com', 'Xi');
-            $mail->Subject    = "Test Send Mails";
-            $mail->AddAddress($email, "USER NAME");
-
-            // $mail->AddAttachment("images/phpmailer.gif");        // attachment
-            // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
+            $mail = makePHPMailerObj ($mailInfo, $email, "Xi Password Reset");
 
             if ($count == 1) {
                 $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
@@ -56,8 +33,8 @@ try {
                 $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
                 error_log (print_r (pg_fetch_assoc ($result), true));
                 
-                $url = "http://localhost/userGUI/passwordReset.html?ptoken=".$ptoken;
-                $mail->MsgHTML("Use this link to reset your Xi password<br><A href='".$url."'>".$url."</A>");
+                $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
+                $mail->MsgHTML("Use this link to reset your Xi account's password<br><A href='".$url."'>".$url."</A>");
                 error_log (print_r ($ptoken, true));
                 error_log (print_r ($id, true));
                 pg_prepare ($dbconn, "getToken", "SELECT * FROM users WHERE ptoken = $1");
@@ -66,7 +43,7 @@ try {
                 pg_query("COMMIT");
                 
             } else {
-                $mail->MsgHTML("Someone is trying to access an account with this email at xi.bio.ed.ac.uk");
+                $mail->MsgHTML ("Someone is trying to access an account with this email at xi.bio.ed.ac.uk");
             }
             
             if(!$mail->Send()) {
@@ -79,7 +56,8 @@ try {
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to send a retrieve password email";
+        error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 
@@ -87,8 +65,9 @@ try {
     pg_close($dbconn);
 
 } catch (Exception $e) {
-     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";
-     error_log (print_r ($msg, true));
+    $date = date("d-M-Y H:i:s");
+     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to connect to the xi database";
+    error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
 }
 

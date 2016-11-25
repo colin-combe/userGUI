@@ -21,8 +21,8 @@ else {
             }
         }
         
-        if ($_POST["newPassword"] && strlen($_POST["newPassword"]) < 7) {
-            throw new Exception ("The new password must be at least 7 characters long.");
+        if (isset($_POST["newPassword"]) && !filter_var ($_POST["newPassword"], FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => '/.{6,}/')))) {
+            throw new Exception ("The new password must be at least 6 characters long.");
         } else {
             
             // Check for non-unique username here so we can chuck the error gracefully with a user-friendly message rather than some sql constraint error rhubarb
