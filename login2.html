@@ -67,7 +67,7 @@
         <form id="password_retrieve_form" name="password_retrieve_form" method="post" action="./php/passwordRetrieve.php" class="login-form">
             <div class="control-group">
               <label for="login-pass">Username / Email</label>
-              <input type="text" value="" placeholder="Username or email" id="password-retrieve" name="password-retrieve" required/>
+              <input type="text" value="" placeholder="Username or email" id="password-retrieve" name="password-retrieve" pattern=".{4,}" required/>
               <span class="error2"></span>
             </div>
             <input name="Submit" value="Send Email" type="submit" class="btn btn-1a"/>
@@ -105,17 +105,22 @@
                     dataType: "json",
                     encode: true,
                     success: function (data, status, xhr) {
+                        console.log ("data", data);
                         if (data.status === "success") {
                             if (data.redirect) {    // redirect if login good
                                 window.location.assign (data.redirect);
-                            }
-                            else if (data.msg) {
+                            } else if (data.msg) {
                                 $("#msg").text(data.msg);
                             }
                         }
-                        else if (data.status === "fail" && data.field) {    // say which field is wrong if login bad
-                            if (data.msg) {
-                                $("#"+data.field).siblings(".error2").text(data.msg).css("display", "inline");
+                        else if (data.status === "fail") {    // say which field is wrong if login bad
+                            if (data.field) {
+                                 $("#"+data.field).siblings(".error2").css("display", "inline");
+                                if (data.msg) {
+                                    $("#"+data.field).siblings(".error2").text(data.msg);
+                                }
+                            } else if (data.msg) {
+                                $("#msg").text(data.msg);
                             }
                         }
                     },

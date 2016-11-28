@@ -34,6 +34,15 @@ try {
             echo (json_encode(array ("status"=>"fail", "field"=> "username", "msg"=>"< The username ".$username." is already taken. Please choose another.")));
             exit;
         }
+        
+        /* test if email already exists */
+        pg_prepare ($dbconn, "doesEmailExist", "SELECT COUNT(email) FROM users WHERE email = $1;");
+        $result = pg_execute($dbconn, "doesEmailExist", [$username]);
+        $returnRow = pg_fetch_assoc ($result);
+        if (intval($returnRow["count"]) > 0) {
+            echo (json_encode(array ("status"=>"fail", "field"=> "email", "msg"=>"< The email address ".$username." is already in use. Please choose another.")));
+            exit;
+        }
 
         // database has 20 character limit on user_name field, throws sql error if bigger
         // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
@@ -60,7 +69,7 @@ try {
             echo json_encode (array ("status"=>"fail", "error"=>"Mailer Error: ".$mail->ErrorInfo));
         } 
         else {
-            $json = json_encode(array ("status"=>"success", "msg"=> "New user ".$username." added", "username"=>$username));
+            $json = json_encode(array ("status"=>"success", "msg"=> "New user ".$username." added. A confirmation email has been sent to the address.", "username"=>$username));
             echo ($json);
         }
     } catch (Exception $e) {

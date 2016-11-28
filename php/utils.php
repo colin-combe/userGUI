@@ -85,4 +85,38 @@
         // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
         return $mail;
     }
+
+    function sendPasswordResetMail ($email, $id, $count, $dbconn) {
+        include ('../../connectionString.php');
+        require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
+        require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
+        
+        error_log (print_r ($email, true));
+        if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
+
+            if ($count == 1) {
+                error_log (print_r ($count, true));
+                $mail = makePHPMailerObj ($mailInfo, $email, "Xi Password Reset");
+                $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
+                pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2, ptoken_timestamp = now() WHERE id = $1");
+                $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
+                error_log (print_r (pg_fetch_assoc ($result), true));
+                
+                $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
+                $mail->MsgHTML("Use this link to reset your Xi account's password<br><A href='".$url."'>".$url."</A>");
+                error_log (print_r ($ptoken, true));
+                error_log (print_r ($id, true));
+
+                pg_query("COMMIT");
+                
+                if(!$mail->Send()) {
+                    error_log (print_r ("failsend", true));
+                }   
+            } else {
+                throw new Exception ("More than one username is registered with this email address.");
+            }
+        } else {
+            throw new Exception ("Invalid email address. Password reset mail cannot be sent.");
+        }
+    }
 ?>

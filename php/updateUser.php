@@ -26,16 +26,19 @@ else {
         } else {
             
             // Check for non-unique username here so we can chuck the error gracefully with a user-friendly message rather than some sql constraint error rhubarb
+            /*
             $preparedStr = "SELECT COUNT (user_name) FROM users WHERE id <> $1 AND user_name = $2";
             $uniqueName = pg_prepare($dbconn, "uniqueName", $preparedStr);
             $result = pg_execute($dbconn, "uniqueName", [$_POST["id"], $_POST["user_name"]]);
             $returnRow = pg_fetch_assoc ($result);
             if ($returnRow["count"] > 0) throw new Exception ("The username '".$_POST["user_name"]."' is already taken by another user. Choose another name.");
+            */
             
             $hash = $_POST["newPassword"] ? password_hash ($_POST["newPassword"], PASSWORD_BCRYPT) : "";
 
             if ($isSuperUser) {
-                $preparedStr = "UPDATE users SET user_name = $2, super_user = $3, can_add_search = $4, see_all = $5, email = $6".($hash ? ", password = $7":"")." WHERE id = $1";
+                //$preparedStr = "UPDATE users SET user_name = $2, super_user = $3, can_add_search = $4, see_all = $5, email = $6".($hash ? ", password = $7":"")." WHERE id = $1";
+                $preparedStr = "UPDATE users SET super_user = $3, can_add_search = $4, see_all = $5, email = $6".($hash ? ", password = $7":"")." WHERE id = $1";
                 $qParams = [$_POST["id"], $_POST["user_name"], $_POST["super_user"], $_POST["can_add_search"], $_POST["see_all"], $_POST["email"], $hash];
                 if (!$hash) {
                     array_pop($qParams);
@@ -44,8 +47,10 @@ else {
                 $result = pg_execute($dbconn, "updateUser", $qParams);
                 $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
             } else {
+                // only change if session id equals post id (stops client sending spurious post ids to try and change other people's details)
                 if ($_POST['id'] === $_SESSION['user_id']) {
-                    $preparedStr = "UPDATE users SET user_name = $2, email = $3".($hash ? ", password = $4":"")." WHERE id = $1";
+                    //$preparedStr = "UPDATE users SET user_name = $2, email = $3".($hash ? ", password = $4":"")." WHERE id = $1";
+                    $preparedStr = "UPDATE users SET email = $3".($hash ? ", password = $4":"")." WHERE id = $1";
                     $qParams = [$_POST["id"], $_POST["user_name"], $_POST["email"], $hash];
                     if (!$hash) {
                         array_pop($qParams);

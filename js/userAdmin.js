@@ -10,7 +10,7 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    console.disableLogging();
+    //console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     
@@ -103,7 +103,7 @@ CLMSUI.buildUserAdmin = function () {
         return indices;
     }
     
-    var regExpPatterns = {"user_name": new RegExp (/\S{3}/i), "email": new RegExp (/\S+@\S+|^$/i), "newPassword": new RegExp (/.{7}|^$/i)};
+    var regExpPatterns = {"user_name": new RegExp (/\S{3}/i), "email": new RegExp (/\S+@\S+|^$/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
     
     function indicateChangedValues (sel) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
@@ -179,13 +179,13 @@ CLMSUI.buildUserAdmin = function () {
         });
      
         var types = {
-            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", email: "text", newPassword: "text", update: "button", delete: "button"
+            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", email: "text", update: "button", reset_Password: "button", delete: "button"
         };
          
         var tableSettings = {
             users: {domid: "#userTable", data: userData, dataIDField: "id",
-                    autoWidths: d3.set(["newPassword", "email"]), 
-                    editable: d3.set(["newPassword", "email", "user_name"]),
+                    autoWidths: d3.set([/*"reset_Password",*/ "email"]), 
+                    editable: d3.set([/*"reset_Password",*/ "email"/*, "user_name"*/]),
                     columnTypes: types,
                     columnOrder:  d3.keys(types),
                     columnIcons: {you : "ui-icon-person"}
@@ -254,8 +254,10 @@ CLMSUI.buildUserAdmin = function () {
                 else if (elemType === "button") {
                     d3Elem.append("input")
                         .attr ("type", elemType)
-                        .text (function(d) { return d.key; })
-                        .property ("value", function(d) { return d.key; })
+                        //.text (function(d) { return d.key+" User"; })
+                        .property ("value", function(d) {
+                            return d.key.replace (/_/g, " ") + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
+                        })
                         .on ("click", function (d) {  
                             // pick data from all cells in row with the right id
                             var rowSel = tbody.selectAll("tr").filter(function(dd) { return dd.id === d.id; });
@@ -318,7 +320,7 @@ CLMSUI.buildUserAdmin = function () {
                 rowJoin.exit().remove();
             }
             if (!isSuperUser) {
-                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["see_all", "can_add_search", "super_user", "you"], []);
+                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["id", "see_all", "can_add_search", "super_user", "you"], []);
                 // best to hide columns user has no privilege to change - http://stackoverflow.com/a/372503/368214
                 $("#"+baseId).DataTable().columns(superuserOnlyColumns).visible(false);
             }
@@ -326,10 +328,12 @@ CLMSUI.buildUserAdmin = function () {
             // highlight user's own row, do after datatable 'cos it wipes out existing classes
             newRows.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
             
+            /*
             d3.select("#addNewUser")
                 .on ("click", function() { addUser (tableSetting.data); })
                 .style ("display", isSuperUser ? null : "none")
              ;
+             */
         }
          
          function removeRows (ids, udata) {
@@ -386,9 +390,22 @@ CLMSUI.buildUserAdmin = function () {
                  );
 
                  CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
-             }
+             },
+             
+             reset_PasswordUser: function (udata, dArray) {
+                 console.log ("uddd", udata, dArray);
+                 var resetPasswordAjax = makeAjaxFunction (
+                     "php/resetPasswordUser.php", 
+                     {id: dArray[0].id}, 
+                     "Email notification failure, check email address is valid",
+                     function () {}
+                 );
+
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This will send a link to the user's email to reset their password.<br>Are You Sure?", "Please Confirm", "Proceed with Email", "Cancel this Action", resetPasswordAjax);
+             },
          };
          
+         /*
          function addUser (udata) {
              return makeAjaxFunction (
                 "php/newUser.php", 
@@ -400,5 +417,6 @@ CLMSUI.buildUserAdmin = function () {
                 }
              )();
          }
+         */
      }
 };

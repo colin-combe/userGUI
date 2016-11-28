@@ -15,7 +15,7 @@ else {
         
         $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
 
-        if ($isSuperUser) {
+        if (false /*$isSuperUser*/) {   // new users now added by userRegistration page
             // database has 20 character limit on user_name field, throws sql error if bigger
             // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
             $tempUser = substr($_SESSION['session_name'], 0, 14);
