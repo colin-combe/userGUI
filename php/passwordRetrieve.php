@@ -21,7 +21,7 @@ try {
 
         sendPasswordResetMail ($returnRow['email'], $returnRow['id'], $count, $dbconn);
 
-        echo (json_encode(array ("status"=>"success", "msg"=> "An email has been sent. Please follow the instructions within.")));
+        echo (json_encode(array ("status"=>"success", "msg"=> "An email has been sent. Use the link in the email within 2 hours to reset your password.")));
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");

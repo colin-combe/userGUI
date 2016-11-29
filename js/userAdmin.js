@@ -18,7 +18,6 @@ CLMSUI.buildUserAdmin = function () {
     function canDoImmediately () {
         // Make buttons
         var buttonData = [
-            {id: "#addNewUser", type: "button"},
             {id: "#backButton", type: "button"},
         ];
         buttonData.forEach (function (buttonDatum) {
@@ -327,13 +326,6 @@ CLMSUI.buildUserAdmin = function () {
             
             // highlight user's own row, do after datatable 'cos it wipes out existing classes
             newRows.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
-            
-            /*
-            d3.select("#addNewUser")
-                .on ("click", function() { addUser (tableSetting.data); })
-                .style ("display", isSuperUser ? null : "none")
-             ;
-             */
         }
          
          function removeRows (ids, udata) {
@@ -405,18 +397,5 @@ CLMSUI.buildUserAdmin = function () {
              },
          };
          
-         /*
-         function addUser (udata) {
-             return makeAjaxFunction (
-                "php/newUser.php", 
-                null, 
-                "An Error occurred when trying to add a new user to the database",
-                function (response) { 
-                    udata.push (response.newUser);
-                    makeIndTable (tableSettings.users);
-                }
-             )();
-         }
-         */
      }
 };
