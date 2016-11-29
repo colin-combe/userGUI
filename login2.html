@@ -35,6 +35,7 @@
      <link rel="stylesheet" href="css/login.css" />
       
       <script type="text/javascript" src="./vendor/js/zepto.js"></script>
+      <script src="https://www.google.com/recaptcha/api.js"></script>
   </head>
     
   <body>
@@ -70,6 +71,11 @@
               <input type="text" value="" placeholder="Username or email" id="password-retrieve" name="password-retrieve" pattern=".{4,}" required/>
               <span class="error2"></span>
             </div>
+            
+            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
+            <span class="error2">&lt; Please check the captcha form</span>
+            <br/>
+            
             <input name="Submit" value="Send Email" type="submit" class="btn btn-1a"/>
         </form>
         
@@ -85,14 +91,17 @@
             
             $("#password_retrieve_form").submit (function(e) {
                 $(".error2").css("display", "none");
-                ajaxPost (e.target);
+                var prepostData = {"g-recaptcha-response": grecaptcha.getResponse()};
+                ajaxPost (e.target, prepostData);
                 e.preventDefault();
             });
             
-            function ajaxPost (formElement) {
+            function ajaxPost (formElement, prepostData) {
                 var zform = $(formElement);
                 // grab form input field values and put them in a json obj
-                var json = {redirect: document.referrer};
+                var json = prepostData || {};
+                json.redirect = document.referrer;
+                console.log ("json", json);
                 zform.find("input[type='text'],input[type='password']").each (function() { 
                     var elem = $(this);
                     json[elem.attr("name")] = elem.prop("value");
