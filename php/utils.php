@@ -78,7 +78,7 @@
         } 
     }
 
-    function makePhpMailerObj ($myMailInfo, $toEmail, $subject="Test Send Mails") {
+    function makePhpMailerObj ($myMailInfo, $toEmail, $userName="User Name", $subject="Test Send Mails") {
         $mail               = new PHPMailer();
         $mail->IsSMTP();                                        // telling the class to use SMTP
         $mail->SMTPDebug    = 0;                                // 1 enables SMTP debug information (for testing) - but farts it out to echo, knackering json
@@ -92,14 +92,14 @@
 
         $mail->SetFrom($myMailInfo["account"], 'Xi');
         $mail->Subject    = $subject;
-        $mail->AddAddress($toEmail, "USER NAME");
+        $mail->AddAddress($toEmail, $userName);
         
         // $mail->AddAttachment("images/phpmailer.gif");        // attachment
         // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
         return $mail;
     }
 
-    function sendPasswordResetMail ($email, $id, $count, $dbconn) {
+    function sendPasswordResetMail ($email, $id, $userName, $count, $dbconn) {
         include ('../../connectionString.php');
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
@@ -109,7 +109,7 @@
 
             if ($count == 1) {
                 error_log (print_r ($count, true));
-                $mail = makePHPMailerObj ($mailInfo, $email, "Xi Password Reset");
+                $mail = makePHPMailerObj ($mailInfo, $email, $userName, "Xi Password Reset");
                 $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
                 pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2, ptoken_timestamp = now() WHERE id = $1");
                 $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);

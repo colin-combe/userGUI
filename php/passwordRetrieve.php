@@ -17,12 +17,12 @@ try {
         pg_query("BEGIN") or die("Could not start transaction\n");
 
         /* test if username already exists */
-        pg_prepare ($dbconn, "doesEmailExist", "SELECT id, email FROM users WHERE user_name = $1 OR email = $1");
+        pg_prepare ($dbconn, "doesEmailExist", "SELECT id, user_name, email FROM users WHERE user_name = $1 OR email = $1");
         $result = pg_execute($dbconn, "doesEmailExist", [$pid]);
         $count = intval(pg_numrows($result));
         $returnRow = pg_fetch_assoc ($result); 
 
-        sendPasswordResetMail ($returnRow['email'], $returnRow['id'], $count, $dbconn);
+        sendPasswordResetMail ($returnRow['email'], $returnRow['id'], $returnRow['user_name'], $count, $dbconn);
 
         echo (json_encode(array ("status"=>"success", "msg"=> "An email has been sent. Use the link in the email within 2 hours to reset your password.")));
     } catch (Exception $e) {
