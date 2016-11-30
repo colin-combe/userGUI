@@ -102,7 +102,7 @@ CLMSUI.buildUserAdmin = function () {
         return indices;
     }
     
-    var regExpPatterns = {"user_name": new RegExp (/\S{3}/i), "email": new RegExp (/\S+@\S+|^$/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
+    var regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (/\S+@\S+|^$/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
     
     function indicateChangedValues (sel) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
