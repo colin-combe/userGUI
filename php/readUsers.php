@@ -24,13 +24,8 @@ else {
         }
         
         $returnedData = pg_fetch_all ($result);
-        foreach ($returnedData as $key => $value) {
-            // $value["newPassword"] = 'jhjhj'; doesn't work, $value is a copy, not a reference to the original
-            $returnedData[$key]["newPassword"] = '';
-        }
         
         //error_log(print_r($returnedData, true));
-        //error_log(print_r($_SESSION, true));
              
         //close connection
         pg_close($dbconn);

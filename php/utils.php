@@ -65,6 +65,19 @@
         return $a;
     }
 
+    function validateCaptcha ($captcha) {
+        include ('../../connectionString.php');
+        
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $response=file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secretRecaptchaKey."&response=".$captcha."&remoteip=".$ip);
+        $responseKeys = json_decode($response,true);
+        error_log (print_r ($responseKeys, true));
+        if (intval($responseKeys["success"]) !== 1) {
+            echo (json_encode(array ("status"=>"fail", "msg"=> "Captcha failure.", "revalidate"=> true)));
+            exit;
+        } 
+    }
+
     function makePhpMailerObj ($myMailInfo, $toEmail, $subject="Test Send Mails") {
         $mail               = new PHPMailer();
         $mail->IsSMTP();                                        // telling the class to use SMTP

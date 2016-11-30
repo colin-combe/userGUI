@@ -6,15 +6,14 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-
         <link rel="stylesheet" href="vendor/css/example.wink.css" />
         <link rel="stylesheet" href="../xi3/css/style.css" />
         <link rel="stylesheet" href="css/login.css" />
 
         <script src="vendor/js/jquery-2.2.0.js"></script>
         <script src="vendor/js/hideShowPassword.js"></script>
-         
          <script src="https://www.google.com/recaptcha/api.js"></script>
+         <script src="./js/forms.js"></script>
      </head>
     
      <body>
@@ -38,6 +37,7 @@
                     <label for="email">Email Address</label>
                     <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b" required/>
                     <span class="error">&lt; Hotmail/Yahoo/Gmail addresses not supported</span>
+                    <span class="error2"></span>
                 </div>
 
                 <div class="control-group">
@@ -70,61 +70,11 @@
                 
                 // divert form submit action to this javascript function
                 $("#register_form").submit (function(e) {
-                    console.log ("captcha", grecaptcha.getResponse());
-                    console.log ("e", e);
                     $(".error2").css("display", "none");
-                    ajaxPost (e.target);
+                    CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()});
                     e.preventDefault();
                 });
 
-                // when input is changed cancel the display of previous error messages
-                /*
-                $("input[type='text'],input[type='password']").on("input", function() {
-                    $
-                    */
-
-                function ajaxPost (formElement) {
-                    var zform = $(formElement);
-                    // grab form input field values and put them in a json obj
-                    var json = {redirect: document.referrer, "g-recaptcha-response": grecaptcha.getResponse()};
-                    console.log ("redirect", document.referrer, formElement);
-                    zform.find("input[type='text'],input[type='email'],input[type='password']").each (function() { 
-                        var elem = $(this);
-                        console.log ("elem", elem, elem.attr("name"), elem.prop("value"));
-                        json[elem.attr("name")] = elem.prop("value");
-                    });
-
-                    $.ajax ({
-                        type: zform.attr("method"),
-                        url: zform.attr("action"),
-                        data: json,
-                        dataType: "json",
-                        encode: true,
-                        success: function (data, status, xhr) {
-                            if (data.status === "success") {
-                                if (data.redirect) {    // redirect if login good
-                                    window.location.assign (data.redirect);
-                                } else if (data.msg) {
-                                    $("#msg").text(data.msg);
-                                }         
-                            }
-                            else if (data.status === "fail") {
-                                if (data.field) {    // say which field is wrong if login bad
-                                    if (data.msg) {
-                                        $("#"+data.field).siblings(".error2").text(data.msg).css("display", "inline");
-                                    } else {
-                                        $("#"+data.field).siblings(".error").css("display", "inline");
-                                    }
-                                } else if (data.msg) {
-                                     $("#msg").text(data.msg);
-                                }
-                            }
-                        },
-                        error: function (jqXhr, textStatus, errorThrown) {
-                            console.log ("error args", arguments); // some other error chucked by php
-                        }
-                    });       
-                }
             </script>
         </div>
 

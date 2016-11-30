@@ -6,7 +6,10 @@ try {
     error_log (print_r ($_POST, true));
     
     $pid = validatePostVar ("password-retrieve", '/.{4,}/', false, null, "Needs to be at least 4 characters");
-
+    $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
+    
+    validateCaptcha ($captcha);
+    
     $dbconn = pg_connect($connectionString);
 
     try {
@@ -27,7 +30,7 @@ try {
          $date = date("d-M-Y H:i:s");
          $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to send a retrieve password email";
         error_log (print_r ($msg, true));
-         echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date)));
+         echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date, "revalidate"=> true)));
     }
 
     //close connection
@@ -37,7 +40,7 @@ try {
     $date = date("d-M-Y H:i:s");
      $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to connect to the xi database";
     error_log (print_r ($msg, true));
-     echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date)));
+     echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date, "revalidate"=> true)));
 }
 
 ?>
