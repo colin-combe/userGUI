@@ -55,20 +55,11 @@ input:required:invalid ~ span, input:focus:invalid ~ span {
     color: red;
     margin-left: 1em;
     padding: 0em 0.5em;
+    font-size: 0.8em;
 }
 
-.info {
-    color: grey;
-    margin-left: 1em;
-    padding: 0.2em 0.5em;
-}
-
-header, h4 {
+header {
     padding-bottom: 1em;
-}
-
-h4 {
-    font-weight: normal;
 }
 
 .g-recaptcha {
