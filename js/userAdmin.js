@@ -182,7 +182,9 @@ CLMSUI.buildUserAdmin = function () {
         };
          
         var tableSettings = {
-            users: {domid: "#userTable", data: userData, dataIDField: "id",
+            users: {domid: "#userTable", 
+                    data: userData, 
+                    dataIDField: "id",
                     autoWidths: d3.set([/*"reset_Password",*/ "email"]), 
                     editable: d3.set([/*"reset_Password",*/ "email"/*, "user_name"*/]),
                     columnTypes: types,
@@ -224,8 +226,10 @@ CLMSUI.buildUserAdmin = function () {
             ;
 
             var tbody = sel.select("tbody");
+            console.log ("tab", tableSetting.data, tbody.selectAll("tr"));
             var rowJoin = tbody.selectAll("tr").data(tableSetting.data, function(d) { return d[tableSetting.dataIDField]; });
             var newRows = rowJoin.enter().append("tr");
+            console.log ("newRows", newRows, rowJoin.exit());
 
             var cellJoin = newRows.selectAll("td").data (function(d) { 
                 return datumiseRow (d, tableSetting.columnTypes, tableSetting.columnOrder);
@@ -309,9 +313,11 @@ CLMSUI.buildUserAdmin = function () {
                 });
             } else {
                 // how to tell DataTables we have added rows (took ages to figure this out)
-                var addRows = newRows.filter(function(r) { return r !== null; });   // first strip out nulls (which represent existing rows)
-                var jqSel = $(addRows[0]);  // turn the d3 selection of rows into a jquery selection of rows
-                $("#"+baseId).DataTable().rows.add(jqSel).draw();   // add the jquery selection using .rows()
+                // update 05/12/16; actually, adding adds every row not on the current page again :-(
+                // good job i don't really need to add anything to the table anymore, just delete the odd user
+                // var addRows = newRows.filter(function(r) { return r !== null; });   // first strip out nulls (which represent existing rows)
+                // var jqSel = $(addRows[0]);  // turn the d3 selection of rows into a jquery selection of rows
+                // $("#"+baseId).DataTable().rows.add(jqSel).draw();   // add the jquery selection using .rows()
                 
                 // how to tell DataTables we have removed rows (this was easier)
                 rowJoin.exit().classed ("toBeRemoved", true);

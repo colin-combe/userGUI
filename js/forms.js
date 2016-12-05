@@ -25,7 +25,7 @@ CLMSUI.loginForms = {
                     if (data.redirect) {    // redirect if login good
                         window.location.assign (data.redirect);
                     } else if (data.msg) {
-                        $("#msg").text(data.msg);
+                        $("#msg").text(data.msg).addClass("backToBlack");
                     }
                 }
                 else if (data.status === "fail") {    // say which field is wrong if login bad

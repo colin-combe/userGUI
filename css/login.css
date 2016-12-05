@@ -74,3 +74,11 @@ footer > p::before {
 hr.wideDivider {
     margin: 2em 0em;
 }
+
+#msg {
+    transition: color 4s ease;
+    color: red;
+}
+#msg.backToBlack {
+    color: inherit;
+}

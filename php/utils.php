@@ -1,6 +1,7 @@
 <?php
     //include('../../connectionString.php');
 
+
     // from http://stackoverflow.com/questions/2021624/string-sanitizer-for-filename
     function normalizeString($str = '') {
         $str = filter_var($str, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
@@ -95,7 +96,6 @@
         $mail->AddAddress($toEmail, $userName);
         
         // $mail->AddAttachment("images/phpmailer.gif");        // attachment
-        // $mail->AddAttachment("images/phpmailer_mini.gif");   // attachment
         return $mail;
     }
 
@@ -131,5 +131,14 @@
         } else {
             throw new Exception ("Invalid email address. Password reset mail cannot be sent.");
         }
+    }
+
+    function getTextString ($key) {
+        if (!isset($_strings)) {
+            error_log ("init strings");
+            $_strings = json_decode (file_get_contents ("./users.json"), true);
+        }
+        error_log (print_r ($_strings, true));
+        return $_strings [$key];
     }
 ?>

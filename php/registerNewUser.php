@@ -3,7 +3,7 @@ include ('../../connectionString.php');
 include ('utils.php');
 
 try {
-    error_log (print_r ($_POST, true));
+    //error_log (print_r ($_POST, true));   // This printed passwords in plain text to the php log. Lol.
 
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
     $email = validatePostVar ("email", '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/', true);
@@ -36,10 +36,9 @@ try {
         // database has 20 character limit on user_name field, throws sql error if bigger
         // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
         pg_query("BEGIN") or die("Could not start transaction\n");
-        $tempUser = $username;
         $hash = $pword ? password_hash ($pword, PASSWORD_BCRYPT) : "";
         $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, see_all, can_add_search, super_user, email, max_aas, max_spectra) VALUES($1, $3, FALSE, FALSE, FALSE, $2, 100000000, 100000) RETURNING id, user_name");
-        $result = pg_execute($dbconn, "newUser", [$tempUser, $email, $hash]);
+        $result = pg_execute($dbconn, "newUser", [$username, $email, $hash]);
         $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         $returnedID = $returnRow["id"];
 
@@ -51,8 +50,8 @@ try {
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
 
-        $mail = makePHPMailerObj ($mailInfo, $email, "Xi Registration");
-        $mail->MsgHTML("You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.");
+        $mail = makePHPMailerObj ($mailInfo, $email, $username, "Xi Registration");
+        $mail->MsgHTML(getTextString("newUserEmailBody"));
         
         if(!$mail->Send()) {
              error_log (print_r ("failsend", true));
