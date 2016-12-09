@@ -18,6 +18,7 @@
     // database connection needs to be open and user logged in for these functions to work
     function isSuperUser($dbconn, $userID) {
         $rights = getUserRights ($dbconn, $userID);
+        error_log (print_r ($rights, true));
         return $rights["isSuperUser"];
     }
 
@@ -29,7 +30,20 @@
         $canSeeAll = (!isset($row["see_all"]) || $row["see_all"] === 't');  // 1 if see_all flag is true or if that flag doesn't exist in the database 
         $canAddNewSearch = (!isset($row["can_add_search"]) || $row["can_add_search"] === 't');  // 1 if can_add_search flag is true or if that flag doesn't exist in the database 
         $isSuperUser = (isset($row["super_user"]) && $row["super_user"] === 't');  // 1 if super_user flag is present AND true
-        return array ("canSeeAll"=>$canSeeAll, "canAddNewSearch"=>$canAddNewSearch, "isSuperUser"=>$isSuperUser);
+        
+        pg_prepare($dbconn, "user_rights2", "SELECT max(user_groups.max_search_count) as max_search_count, max(user_groups.max_spectra) as max_spectra, max(user_groups.max_aas) as max_aas, max(search_lifetime_days) as max_search_lifetime
+            FROM user_groups
+            JOIN user_in_group ON user_in_group.group_id = user_groups.id
+            JOIN users ON users.id = user_in_group.user_id
+            WHERE users.id = $1");
+        $result = pg_execute ($dbconn, "user_rights2", [$userID]);
+        $row = pg_fetch_assoc ($result);
+        $maxSearchCount = $row["max_search_count"];
+        $maxAAs = $row["max_aas"];
+        $maxSpectra = $row["max_spectra"];
+        $maxSearchLifetime = $row["max_search_lifetime"];
+        
+        return array ("canSeeAll"=>$canSeeAll, "canAddNewSearch"=>$canAddNewSearch, "isSuperUser"=>$isSuperUser, "maxSearchCount"=>$maxSearchCount, "maxAAs"=>$maxAAs, "maxSpectra"=>$maxSpectra, "maxSearchLifetime"=>$maxSearchLifetime);
     }
 
     // Turn result set into array of objects
