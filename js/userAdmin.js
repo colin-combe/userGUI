@@ -75,7 +75,7 @@ CLMSUI.buildUserAdmin = function () {
             "php/readUsers.php", 
             null, 
             "An Error occurred when trying to read the database",
-            function(response) { makeTable (response.data, response.superuser, response.userid); }
+            function(response) { makeTable (response.data, response.superuser, response.userid, response.groupTypeData); }
          )();
      });  
     
@@ -172,13 +172,13 @@ CLMSUI.buildUserAdmin = function () {
     }
 
     
-     function makeTable (userData, isSuperUser, userId) {
+     function makeTable (userData, isSuperUser, userId, groupTypeData) {
         userData.forEach (function (userDatum) {
             userDatum.you = (userDatum.id === userId);    // mark which user is the current user
         });
      
         var types = {
-            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", email: "text", update: "button", reset_Password: "button", delete: "button"
+            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
         };
          
         var tableSettings = {
@@ -188,8 +188,9 @@ CLMSUI.buildUserAdmin = function () {
                     autoWidths: d3.set([/*"reset_Password",*/ "email"]), 
                     editable: d3.set([/*"reset_Password",*/ "email"/*, "user_name"*/]),
                     columnTypes: types,
-                    columnOrder:  d3.keys(types),
-                    columnIcons: {you : "ui-icon-person"}
+                    columnOrder: d3.keys(types),
+                    columnIcons: {you : "ui-icon-person"},
+                    optionLists: {user_group: groupTypeData},
             },
         };
          
@@ -278,6 +279,26 @@ CLMSUI.buildUserAdmin = function () {
                             indicateChangedValues (d3SelectParent(this));   // up to td not input element
                             enableUpdateButton (d.id);
                         })
+                    ;
+                }
+                else if (elemType === "select") {
+                    console.log ("d", d);
+                    var groupVals = d.value;
+                    d3Elem.append("select")
+                        .property ("multiple", true)
+                        .attr ("size", 1)
+                        .on ("change", function (d) {
+                            d.value = !!!d.value;
+                            indicateChangedValues (d3SelectParent(this));   // up to td not input element
+                            enableUpdateButton (d.id);
+                        })
+                        .selectAll("option")
+                            .data(tableSetting.optionLists[d.key], function(d) { return d.id; })
+                            .enter()
+                            .append("option")
+                            .attr ("value", function(d) { return d.id; })
+                            .property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
+                            .text (function(d) { return d.name; })
                     ;
                 }
             });
