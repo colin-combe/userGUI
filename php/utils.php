@@ -31,8 +31,8 @@
         $canSeeAll = (!isset($row["see_all"]) || $row["see_all"] === 't');  // 1 if see_all flag is true or if that flag doesn't exist in the database 
         $canAddNewSearch = (!isset($row["can_add_search"]) || $row["can_add_search"] === 't');  // 1 if can_add_search flag is true or if that flag doesn't exist in the database 
         $isSuperUser = (isset($row["super_user"]) && $row["super_user"] === 't');  // 1 if super_user flag is present AND true
-        $maxAAs = isset($row["max_aas"]) ? 0 : $row["max_aas"];
-        $maxSpectra = isset($row["max_spectra"]) ? 0 : $row["max_spectra"];
+        $maxAAs = isset($row["max_aas"]) ? 0 : (int)$row["max_aas"];
+        $maxSpectra = isset($row["max_spectra"]) ? 0 : (int)$row["max_spectra"];
         $maxSearchCount = 10000;
         $maxSearchLifetime = 1000;
         $maxSearchesPerDay = 100;
@@ -49,16 +49,16 @@
             WHERE users.id = $1");
             $result = pg_execute ($dbconn, "user_rights2", [$userID]);
             $row = pg_fetch_assoc ($result);
-            //error_log (print_r ($row, true));
+            error_log (print_r ($row, true));
             
-            $maxSearchCount = $row["max_search_count"];
-            $maxSearchLifetime = $row["max_search_lifetime"];
-            $maxSearchesPerDay = $row["max_searches_per_day"];
-            $maxAAs = max($maxAAs, $row["max_aas"]);
-            $maxSpectra = max($maxSpectra, $row["max_spectra"]);
-            $canSeeAll = $canSeeAll || ((!isset($row["see_all"]) || $row["see_all"] === 1));
-            $canAddNewSearch = $canAddNewSearch || (!isset($row["can_add_search"]) || $row["can_add_search"] === 1);
-            $isSuperUser = $isSuperUser || (isset($row["super_user"]) && $row["super_user"] === 1); 
+            $maxSearchCount = (int)$row["max_search_count"];
+            $maxSearchLifetime = (int)$row["max_search_lifetime"];
+            $maxSearchesPerDay = (int)$row["max_searches_per_day"];
+            $maxAAs = max($maxAAs, (int)$row["max_aas"]);
+            $maxSpectra = max($maxSpectra, (int)$row["max_spectra"]);
+            $canSeeAll = $canSeeAll || ((!isset($row["see_all"]) || (int)$row["see_all"] === 1));
+            $canAddNewSearch = $canAddNewSearch || (!isset($row["can_add_search"]) || (int)$row["can_add_search"] === 1);
+            $isSuperUser = $isSuperUser || (isset($row["super_user"]) && (int)$row["super_user"] === 1); 
             
             if ($canAddNewSearch) {
                 $userSearches = countUserSearches ($dbconn, $userID);
@@ -88,7 +88,7 @@
         pg_prepare ($dbconn, "activeUserSearchesToday", "SELECT COUNT(id) FROM search WHERE uploadedby = $1 AND (hidden ISNULL or hidden = 'f') AND submit_date::date = now()::date");
         $result = pg_execute ($dbconn, "activeUserSearchesToday", [$userID]);
         $row = pg_fetch_assoc ($result);
-        return $row["count"];
+        return (int)$row["count"];
     }
 
     // Number of searches by a particular user
@@ -96,14 +96,14 @@
         pg_prepare ($dbconn, "activeUserSearches", "SELECT COUNT(id) FROM search WHERE uploadedby = $1 AND (hidden ISNULL or hidden = 'f')");
         $result = pg_execute ($dbconn, "activeUserSearches", [$userID]);
         $row = pg_fetch_assoc ($result);
-        return $row["count"];
+        return (int)$row["count"];
     }
 
     function doesColumnExist ($dbconn, $tableName, $columnName) {
         pg_prepare($dbconn, "doesColExist", "SELECT COUNT(column_name) FROM information_schema.columns WHERE table_name=$1 AND column_name=$2");
         $result = pg_execute ($dbconn, "doesColExist", [$tableName, $columnName]);
         $row = pg_fetch_assoc ($result);
-        return ($row["count"] == 1);
+        return ((int)$row["count"] === 1);
     }
 
     // Turn result set into array of objects

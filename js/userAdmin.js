@@ -104,9 +104,16 @@ CLMSUI.buildUserAdmin = function () {
     
     var regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (/\S+@\S+|^$/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
     
+    function equals (d) {
+        if ($.isArray(d.value) && $.isArray(d.originalValue)) {
+            return $(d.value).not(d.originalValue).length === 0 && $(d.originalValue).not(d.value).length === 0;
+        }
+        return d.value === d.originalValue;
+    }
+    
     function indicateChangedValues (sel) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
-        sel.classed ("changedValue", function(d) { return d.value !== d.originalValue; });
+        sel.classed ("changedValue", function(d) { return !equals (d); });
     }
     
     function fillInMissingFields (row, types) {
@@ -146,7 +153,7 @@ CLMSUI.buildUserAdmin = function () {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
         var d3Data = d3Sel.data();
         var enabled = d3Data.some (function (d3Datum) {
-            return d3Datum.originalValue != d3Datum.value;
+            return !equals(d3Datum);
         });
 
         enabled = enabled && d3Data.every (function (d3Datum) {                
@@ -170,6 +177,59 @@ CLMSUI.buildUserAdmin = function () {
         indicateChangedValues (d3SelectParent(this));   // up to td not span element
         enableUpdateButton (d.id);
     }
+    
+    function typeCapabilities (obj) {
+        var desc = [];
+        if (truthy (obj.superuser)) { desc.push("Superuser"); }
+        if (truthy (obj.can_add_search)) { 
+            desc.push("Can add"+(obj.max_search_count ? " up to "+obj.max_search_count : "")+" searches");
+        } else if (obj.can_add_search != undefined) { 
+            desc.push ("Cannot add new searches");
+        }
+        if (truthy (obj.can_add_search) && obj.max_searches_per_day) { desc.push(obj.max_searches_per_day + " per day"); }
+        if (truthy (obj.see_all)) { 
+            desc.push ("Can see other users public searches");
+        } else if (obj.see_all != undefined) {
+            desc.push ("Can only see own searches");
+        }
+        return desc.join(", ");
+    }
+    
+    function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList) {
+        var selectSelect = d3.select(tableID).selectAll("select");
+            
+        $(selectSelect).each (function() {
+            $(this).multipleSelect({ 
+                single: true,
+                filter: false, 
+                selectAll: false,
+                placeholder: "User Type",
+                multiple: false, // this is to show multiple options per row, not to do with multiple selections (that's single)
+                width: 200,
+                onClick: function (obj) {
+                    var parent = obj.instance.$parent.parent()[0];  // climb up to td element
+                    var origSelect = d3.select(parent).select("select");    // grab the original select element (as it has the bound data)
+                    var d = origSelect.datum(); // grab the data
+                    d.value = [obj.value];  // replace the data value with the new value
+                    
+                    indicateChangedValues (d3.select(parent));   // up to td not input element
+                    enableUpdateButton (d.id);
+                },
+            });
+        });
+        
+        // Two changes needed to get multipleSelect plug-in to work within a table:
+        // 1. So drop-downs overlay surrounding rows (gets cutoff otherwise)
+        d3.select(tableID).selectAll(".ms-parent").style ("position", "absolute").style("margin-top", "-1em");
+        // 2. Set header of this columns min-width to current width to stop column shrinkage due to above change
+        d3.select(tableID).select("thead th:nth-child("+oneBasedColumnIndex+")").style ("min-width", "200px");
+        
+        d3.selectAll(".ms-drop").selectAll("li label")
+            .attr("title", function(d,i) {
+                return typeCapabilities (optionList["user_group"][i]);
+            })
+        ;
+    }
 
     
      function makeTable (userData, isSuperUser, userId, groupTypeData) {
@@ -178,7 +238,7 @@ CLMSUI.buildUserAdmin = function () {
         });
      
         var types = {
-            id: "text", you: "text", user_name: "text", see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox", user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
+            id: "text", you: "text", user_name: "text", /*see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox",*/ user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
         };
          
         var tableSettings = {
@@ -187,6 +247,7 @@ CLMSUI.buildUserAdmin = function () {
                     dataIDField: "id",
                     autoWidths: d3.set([/*"reset_Password",*/ "email"]), 
                     editable: d3.set([/*"reset_Password",*/ "email"/*, "user_name"*/]),
+                    superUserEditable: d3.set(["user_group"]),
                     columnTypes: types,
                     columnOrder: d3.keys(types),
                     columnIcons: {you : "ui-icon-person"},
@@ -237,7 +298,6 @@ CLMSUI.buildUserAdmin = function () {
             });
             var newCells = cellJoin.enter().append("td");
             
-
             
             newCells.each (function (d) {
                 var elemType = tableSetting.columnTypes[d.key];
@@ -266,7 +326,7 @@ CLMSUI.buildUserAdmin = function () {
                             // pick data from all cells in row with the right id
                             var rowSel = tbody.selectAll("tr").filter(function(dd) { return dd.id === d.id; });
                             var rowCellData = rowSel.selectAll("td").data();
-                            perUserActions[d.key+"User"](tableSetting.data, rowCellData);
+                            perUserActions[d.key+"User"](tableSetting.data, rowCellData, tableSetting.optionLists);
                         })
                     ;
                 }
@@ -282,16 +342,11 @@ CLMSUI.buildUserAdmin = function () {
                     ;
                 }
                 else if (elemType === "select") {
-                    console.log ("d", d);
                     var groupVals = d.value;
+                    var readOnly = !isSuperUser && tableSetting.superUserEditable.has(d.key);
                     d3Elem.append("select")
-                        .property ("multiple", true)
-                        .attr ("size", 1)
-                        .on ("change", function (d) {
-                            d.value = !!!d.value;
-                            indicateChangedValues (d3SelectParent(this));   // up to td not input element
-                            enableUpdateButton (d.id);
-                        })
+                        .property ("disabled", readOnly)
+                        .attr ("title", readOnly ? "Superuser role needed to change this" : "")
                         .selectAll("option")
                             .data(tableSetting.optionLists[d.key], function(d) { return d.id; })
                             .enter()
@@ -321,7 +376,10 @@ CLMSUI.buildUserAdmin = function () {
                 .style ("width", vcWidth) 
             ;
 
-            if (firstTime) {
+            if (firstTime) { 
+                var selectColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["select"]);
+                makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists);
+                
                 var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
                 $("#"+baseId).dataTable ({
                     "paging": true,
@@ -349,6 +407,10 @@ CLMSUI.buildUserAdmin = function () {
                 var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["id", "see_all", "can_add_search", "super_user", "you"], []);
                 // best to hide columns user has no privilege to change - http://stackoverflow.com/a/372503/368214
                 $("#"+baseId).DataTable().columns(superuserOnlyColumns).visible(false);
+                
+                // Except where we want it to communicate a state
+                var superuserOnlyColumns2 = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, tableSetting.superUserEditable.values(), []);
+                $("#"+baseId).DataTable().columns(superuserOnlyColumns2).nodes().flatten().to$().addClass("readOnly");
             }
             
             // highlight user's own row, do after datatable 'cos it wipes out existing classes
@@ -363,14 +425,30 @@ CLMSUI.buildUserAdmin = function () {
              makeIndTable (tableSettings.users);
          }
          
+         // Beware
+         function areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj, optionLists) {
+             //var danger = (isSuperUser && jsonObj.super_user === false && jsonObj.id === userId);
+             var danger = (isSuperUser && jsonObj.id === userId);
+             if (danger) {
+                 var set = d3.set (jsonObj.user_group);
+                 var appropGroups = optionLists["user_group"].filter (function (userGroup) {
+                    return set.has (userGroup.id);
+                 });
+                 danger &= !(appropGroups.some (function (group) {
+                    return truthy (group.superuser);  
+                 }));
+             }
+             return danger;
+         }
+         
          
          var perUserActions = {
-             updateUser: function (udata, dArray) {    // userdata should be arg for safety sake
+             updateUser: function (udata, dArray, optionLists) {    // userdata should be arg for safety sake
                  var jsonObj = {};
                  dArray.forEach (function(d) {
                      jsonObj[d.key] = d.value;
                  });
-                 var removingOwnSuperuserStatus = (isSuperUser && jsonObj.super_user === false && jsonObj.id === userId);
+                 var removingOwnSuperuserStatus = areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj, optionLists);
                  
                  var updateUserAjax = makeAjaxFunction (
                      "php/updateUser.php", 
@@ -382,19 +460,23 @@ CLMSUI.buildUserAdmin = function () {
                             d.originalValue = d.value;
                         });
                         if (removingOwnSuperuserStatus) {
+                            // This is easier than trying to persude DataTables to reveal the original rows in the table and remove them
+                            location.reload();
+                            /*
                             isSuperUser = false;
                             var otherUserIDs = udata
                                 .map(function(uDatum) { return uDatum.id; })
                                 .filter(function(uid) { return uid !== userId; })
                             ;
                             removeRows (otherUserIDs, udata);
+                            */
                         } else {
                              makeIndTable (tableSettings.users);
                         }
                      }
                  );
                  if (removingOwnSuperuserStatus) {
-                     CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "Removing your own superuser status cannot be undone (by yourself).<br>Are You Sure?", "Please Confirm", "Proceed with Update", "Cancel this Action", updateUserAjax);
+                     CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This change will revoke your own superuser role and cannot be undone (by yourself).<br>Are You Sure?", "Please Confirm", "Proceed with Update", "Cancel this Action", updateUserAjax);
                  } else {
                     updateUserAjax();
                  }
@@ -412,7 +494,6 @@ CLMSUI.buildUserAdmin = function () {
              },
              
              reset_PasswordUser: function (udata, dArray) {
-                 console.log ("uddd", udata, dArray);
                  var resetPasswordAjax = makeAjaxFunction (
                      "php/resetPasswordUser.php", 
                      {id: dArray[0].id}, 

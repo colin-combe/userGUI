@@ -174,8 +174,8 @@ table tbody tr.isUser {
     background: #ffd;
 }
 
-table tr input[disabled] {
-    color: #888;
+table tr input[disabled], button.ms-choice.disabled span {
+    color: #aaa;
 }
 
 tbody tr td {
@@ -194,4 +194,13 @@ tbody tr td.changedValue {
     background: #ddf;
     color: #448;
     border: 1px solid blue;
+}
+
+.ms-choice {
+    text-transform: capitalize;
+    font-family: inherit;
+}
+
+.ms-choice > span {
+    top: 0.25em;
 }

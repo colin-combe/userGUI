@@ -23,14 +23,20 @@ else {
              $groupResult = pg_execute($dbconn, "allGroupInfo", []);
             $groupData = pg_fetch_all ($groupResult);
         } else {
-             pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name, email FROM users WHERE id = $1");
+             //pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name, email FROM users WHERE id = $1");
+             pg_prepare ($dbconn, "singleUserInfo", "SELECT users.id, user_name, see_all, can_add_search, super_user, email, array_agg(user_in_group.group_id) AS user_group FROM users JOIN user_in_group ON user_in_group.user_id = users.id WHERE users.id = $1 GROUP BY users.id"); 
              $result = pg_execute($dbconn, "singleUserInfo", [$_SESSION['user_id']]);
-             $groupData = [];
+             //$groupData = [];
+            pg_prepare ($dbconn, "allGroupInfo", "SELECT * FROM user_groups");
+             $groupResult = pg_execute($dbconn, "allGroupInfo", []);
+            $groupData = pg_fetch_all ($groupResult);
         }
         
         $returnedData = pg_fetch_all ($result);
+        
         for ($i=0; $i<count($returnedData); $i++) {
-            $returnedData[$i]['user_group'] = explode(",", trim($returnedData[$i]['user_group'], '{}'));
+            $returnedData[$i]['user_group'] = explode(",", trim($returnedData[$i]['user_group'], '{}'));    // explode string to array
+            $returnedData[$i]['user_group'] = array_diff ($returnedData[$i]['user_group'], array("NULL"));  // Strip out nulls
         }
              
         //close connection
