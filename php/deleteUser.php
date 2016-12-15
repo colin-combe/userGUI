@@ -17,7 +17,7 @@ else {
         $email = null;
         $username = null;
 
-        if ($isSuperUser) {
+        if ($isSuperUser || ($_SESSION['user_id'] === $_POST["id"])) {  // Only superuser or account owner can delete user account
             $deleteUserInGroup = pg_prepare($dbconn, "deleteUserInGroup", "DELETE FROM user_in_group WHERE user_id = $1");
             $result = pg_execute($dbconn, "deleteUserInGroup", [$_POST["id"]]);
             $deleteUser = pg_prepare($dbconn, "deleteUser", "DELETE FROM users WHERE id = $1 RETURNING user_name, email");

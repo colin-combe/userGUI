@@ -82,3 +82,9 @@ hr.wideDivider {
 #msg.backToBlack {
     color: inherit;
 }
+
+#spinBox {
+    width: 2em;
+    height: 4em;
+    position: relative;
+}

@@ -2,7 +2,7 @@ var CLMSUI = CLMSUI || {};
 
 CLMSUI.loginForms = {
     
-    ajaxPost: function (formElement, prepostData) {
+    ajaxPost: function (formElement, prepostData, doneFunc) {
         var zform = $(formElement);
         // grab form input field values and put them in a json obj
         var json = prepostData || {};
@@ -20,7 +20,6 @@ CLMSUI.loginForms = {
             dataType: "json",
             encode: true,
             success: function (data, status, xhr) {
-                console.log ("data", data);
                 if (data.status === "success") {
                     if (data.redirect) {    // redirect if login good
                         window.location.assign (data.redirect);
@@ -44,6 +43,11 @@ CLMSUI.loginForms = {
             },
             error: function (jqXhr, textStatus, errorThrown) {
                 console.log ("error args", arguments); // some other error chucked by php
+            },
+            complete: function () {
+                if (doneFunc) {
+                    doneFunc ();
+                }
             }
         });
     }

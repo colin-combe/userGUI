@@ -12,6 +12,7 @@
 
         <script src="vendor/js/jquery-2.2.0.js"></script>
         <script src="vendor/js/hideShowPassword.js"></script>
+        <script src="vendor/js/spin.js"></script>
          <script src="https://www.google.com/recaptcha/api.js"></script>
          <script src="./js/forms.js"></script>
      </head>
@@ -56,10 +57,17 @@
 
               </form>
             
+            <div id="spinBox"></div>
             <div id="msg"></div>
 
             <script type="text/javascript"> 
-
+                var spinner = new Spinner ({
+                    lines: 13, // The number of lines to draw
+                    length: 5, // The length of each line
+                    width: 2, // The line thickness
+                    radius: 7, // The radius of the inner circle
+                });
+                
                 // Example 3:
                 // - When checkbox changes, toggle password
                 //   visibility based on its 'checked' property
@@ -71,7 +79,8 @@
                 // divert form submit action to this javascript function
                 $("#register_form").submit (function(e) {
                     $(".error2").css("display", "none");
-                    CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()});
+                    spinner.spin (document.getElementById ("spinBox"));
+                    CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
                     e.preventDefault();
                 });
 

@@ -10,9 +10,15 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    //console.disableLogging();
+    console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
+    var spinner = new Spinner ({
+        lines: 13, // The number of lines to draw
+        length: 25, // The length of each line
+        width: 10, // The line thickness
+        radius: 35, // The radius of the inner circle
+    });
     
     // Stuff that can be done before any php/database shenanigans
     function canDoImmediately () {
@@ -44,6 +50,7 @@ CLMSUI.buildUserAdmin = function () {
     
     function makeAjaxFunction (php, data, errorMsg, successFunc) {
          return function() {
+             spinner.spin (document.getElementById ("topLevel")); // need hosting element to be position relative or fixed
              $.ajax ({
                 type: data ? "POST" : "GET",
                 url: php,
@@ -64,6 +71,9 @@ CLMSUI.buildUserAdmin = function () {
                 error: function (jqXhr, textStatus, errorThrown) {  
                     CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
                 },
+                complete : function () {
+                    spinner.stop();
+                }
             });
          };
      }
@@ -483,14 +493,17 @@ CLMSUI.buildUserAdmin = function () {
              },
              
              deleteUser: function (udata, dArray) {
+                 var deletingID = dArray[0].id;
+                 var selfDelete = deletingID == userId;
+                 
                  var deleteUserAjax = makeAjaxFunction (
                      "php/deleteUser.php", 
-                     {id: dArray[0].id}, 
+                     {id: deletingID}, 
                      "Delete failed on the server before reaching the database",
-                     function () { removeRows ([dArray[0].id], udata); }
+                     function () { selfDelete ? window.location.replace ("./userReg.html") : removeRows ([deletingID], udata); }
                  );
 
-                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This user will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", (selfDelete ? "You" : "This user") +" will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
              },
              
              reset_PasswordUser: function (udata, dArray) {
