@@ -217,6 +217,7 @@ CLMSUI.buildUserAdmin = function () {
                 single: true,
                 placeholder: "User Type",
                 width: 200,
+                maxHeight: "100%",
                 onClick: function (obj) {
                     var parent = obj.instance.$parent.parent()[0];  // climb up to td element
                     var origSelect = d3.select(parent).select("select");    // grab the original select element (as it has the bound data)
