@@ -205,16 +205,17 @@ CLMSUI.buildUserAdmin = function () {
         return desc.join(", ");
     }
     
+    function stripUnderscores (d) {
+        return d.replace (/_/g, " ");
+    }
+    
     function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList) {
         var selectSelect = d3.select(tableID).selectAll("select");
             
         $(selectSelect).each (function() {
             $(this).multipleSelect({ 
                 single: true,
-                filter: false, 
-                selectAll: false,
                 placeholder: "User Type",
-                multiple: false, // this is to show multiple options per row, not to do with multiple selections (that's single)
                 width: 200,
                 onClick: function (obj) {
                     var parent = obj.instance.$parent.parent()[0];  // climb up to td element
@@ -291,7 +292,7 @@ CLMSUI.buildUserAdmin = function () {
             hrow.selectAll("th").data(tableSetting.columnOrder)
                 .enter()
                 .append("th")
-                .text(function(d) { return d.replace (/_/g, " "); })    // regex needed to replace multiple "_"
+                .text (stripUnderscores)    // regex needed to replace multiple "_"
                 .filter (function(d) { return tableSetting.autoWidths.has(d); })
                 .classed ("varWidthCell", true)
                  .style ("width", vcWidth)
@@ -330,7 +331,7 @@ CLMSUI.buildUserAdmin = function () {
                         .attr ("type", elemType)
                         //.text (function(d) { return d.key+" User"; })
                         .property ("value", function(d) {
-                            return d.key.replace (/_/g, " ") + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
+                            return stripUnderscores (d.key) + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
                         })
                         .on ("click", function (d) {  
                             // pick data from all cells in row with the right id
@@ -363,7 +364,7 @@ CLMSUI.buildUserAdmin = function () {
                             .append("option")
                             .attr ("value", function(d) { return d.id; })
                             .property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
-                            .text (function(d) { return d.name; })
+                            .text (function(d) { return stripUnderscores (d.name); })
                     ;
                 }
             });

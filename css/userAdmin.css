@@ -200,11 +200,20 @@ tbody tr td.changedValue {
     border: 1px solid blue;
 }
 
-.ms-choice {
+.ms-choice, .ms-drop label span {
     text-transform: capitalize;
     font-family: inherit;
 }
 
 .ms-choice > span {
     top: 0.25em;
+}
+
+.ms-drop ul > li:nth-child(2n) {
+    background: #f0f0f0;
+}
+
+u {    
+    border-bottom: 1px dotted #000;
+    text-decoration: none;
 }
