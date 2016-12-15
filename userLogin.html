@@ -35,6 +35,7 @@
       <link rel="stylesheet" href="css/login.css" />
       
       <script type="text/javascript" src="./vendor/js/zepto.js"></script>
+        <script type="text/javascript" src="./vendor/js/spin.js"></script>
       <script src="https://www.google.com/recaptcha/api.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
@@ -73,27 +74,43 @@
               <span class="error2"></span>
             </div>
             
-            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"></div>
+            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
             <span class="error2">&lt; Please check the captcha form</span>
             <br/>
             
             <input name="Submit" value="Send Email" type="submit" class="btn btn-1a"/>
         </form>
         
+        <div id="spinBox"></div>
         <p id="msg"></p>
 
         <script type="text/javascript"> 
-            // divert form submit action to this javascript function
-            $("#login_form").submit (function(e) {
-                $(".error2").css("display", "none");
-                CLMSUI.loginForms.ajaxPost (e.target);
-                e.preventDefault();
-            });
-            
-            $("#password_retrieve_form").submit (function(e) {
-                $(".error2").css("display", "none");
-                CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()});
-                e.preventDefault();
+            $(document).ready(function(e) {
+                $.getJSON("./json/config.json", function (config) {
+                        
+                    $("#recaptchaWidget").attr("data-sitekey", config.googleRecaptchaPublicKey);
+                                            
+                    var spinner = new Spinner ({
+                        lines: 13, // The number of lines to draw
+                        length: 5, // The length of each line
+                        width: 2, // The line thickness
+                        radius: 7, // The radius of the inner circle
+                    });
+                    
+                    // divert form submit action to this javascript function
+                    $("#login_form").submit (function(e) {
+                        $(".error2").css("display", "none");
+                        CLMSUI.loginForms.ajaxPost (e.target);
+                        e.preventDefault();
+                    });
+
+                    $("#password_retrieve_form").submit (function(e) {
+                        $(".error2").css("display", "none");
+                        spinner.spin (document.getElementById ("spinBox"));
+                        CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
+                        e.preventDefault();
+                    });
+                });
             });
         </script>
     </div>
