@@ -30,8 +30,8 @@
         $canSeeAll = (!isset($row["see_all"]) || $row["see_all"] === 't');  // 1 if see_all flag is true or if that flag doesn't exist in the database 
         $canAddNewSearch = (!isset($row["can_add_search"]) || $row["can_add_search"] === 't');  // 1 if can_add_search flag is true or if that flag doesn't exist in the database 
         $isSuperUser = (isset($row["super_user"]) && $row["super_user"] === 't');  // 1 if super_user flag is present AND true
-        $maxAAs = isset($row["max_aas"]) ? 0 : (int)$row["max_aas"];
-        $maxSpectra = isset($row["max_spectra"]) ? 0 : (int)$row["max_spectra"];
+        $maxAAs = isset($row["max_aas"]) ? (int)$row["max_aas"] : 0;
+        $maxSpectra = isset($row["max_spectra"]) ? (int)$row["max_spectra"] : 0;
         $maxSearchCount = 10000;
         $maxSearchLifetime = 1000;
         $maxSearchesPerDay = 100;
