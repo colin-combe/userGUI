@@ -52,7 +52,7 @@ try {
 
 } catch (Exception $e) {
      $date = date("d-M-Y H:i:s");
-     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attemptin to access the Xi database";
+     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to access the Xi database";
      error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
 }
