@@ -107,9 +107,9 @@ H3 {
 }
 
 .ui-dialog {
-    -webkit-box-shadow: 10px 10px 10px 0px rgba(0,0,0,0.5);
-    -moz-box-shadow: 10px 10px 10px 0px rgba(0,0,0,0.5);
-    box-shadow: 10px 10px 10px 0px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 10px 10px 10px 0 rgba(0,0,0,0.5);
+    -moz-box-shadow: 10px 10px 10px 0 rgba(0,0,0,0.5);
+    box-shadow: 10px 10px 10px 0 rgba(0,0,0,0.5);
     border: 1px solid #444;
     -webkit-user-select: all;  /* Chrome all / Safari all */
     -moz-user-select: all;     /* Firefox all */
@@ -140,7 +140,7 @@ td span[contenteditable=true] {
     border: 1px solid transparent;
     border-bottom: 1px dotted #88b;
     display: inline-block;
-    padding: 0em 0.2em;
+    padding: 0 0.2em;
 }
 
 td span[contenteditable=true]:hover {
