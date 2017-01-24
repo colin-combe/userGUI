@@ -10,7 +10,7 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    console.disableLogging();
+    //console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     var spinner = new Spinner ({
@@ -65,7 +65,7 @@ CLMSUI.buildUserAdmin = function () {
                     else if (response.status == "success") {
                        successFunc (response);
                     } else {
-                        CLMSUI.jqdialogs.errorDialog ("popErrorDialog", response.error);
+                        CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg, response.error);
                     }
                 },
                 error: function (jqXhr, textStatus, errorThrown) {  
@@ -112,7 +112,8 @@ CLMSUI.buildUserAdmin = function () {
         return indices;
     }
     
-    var regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (/\S+@\S+|^$/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
+    // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
+    var regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
     
     function equals (d) {
         if ($.isArray(d.value) && $.isArray(d.originalValue)) {
@@ -164,13 +165,16 @@ CLMSUI.buildUserAdmin = function () {
         var d3Data = d3Sel.data();
         var enabled = d3Data.some (function (d3Datum) {
             return !equals(d3Datum);
-        });
-
-        enabled = enabled && d3Data.every (function (d3Datum) {                
+        });     
+        enabled &= d3Data.every (function (d3Datum) { 
             return isDatumValid (d3Datum);
         });
 
-        d3Sel.filter(function(d) { return d.key === "update"; }).selectAll("button,input").property("disabled", !enabled);
+        d3Sel
+            .filter(function(d) { return d.key === "update"; })
+            .selectAll("button,input")
+            .property("disabled", !enabled)
+        ;
     }
     
     function indicateValidValues (sel) {

@@ -128,11 +128,12 @@
         if (isset($_POST[$varName])){
             $a = $_POST[$varName];
         }
+        error_log (print_r ($a, true));
         if (!$a || ($isEmail && !filter_var ($a, FILTER_VALIDATE_EMAIL)) || !filter_var ($a, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => $regexp)))) {
             if (isset($msg)) {
-                echo (json_encode(array ("status"=>"fail", "msg"=> $msg)));
+                echo (json_encode(array ("status"=>"fail", "msg"=> $msg, "error"=> $msg)));
             } else {
-                echo (json_encode(array ("status"=>"fail", "field"=> (isset($altFormFieldID) ? $altFormFieldID: $varName))));
+                echo (json_encode(array ("status"=>"fail", "field"=> (isset($altFormFieldID) ? $altFormFieldID: $varName), "error"=> "Input validation failed")));
             }
             exit;
         }
