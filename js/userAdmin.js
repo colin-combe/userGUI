@@ -85,7 +85,9 @@ CLMSUI.buildUserAdmin = function () {
             "php/readUsers.php", 
             null, 
             "An Error occurred when attempting to contact the Xi Database instance.<br>If this continues please contact your Xi Administrator.",
-            function(response) { makeTable (response.data, response.superuser, response.userid, response.groupTypeData); }
+            function (response) {
+                makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
+            }
          )();
      });  
     
@@ -451,7 +453,7 @@ CLMSUI.buildUserAdmin = function () {
                     return set.has (userGroup.id);
                  });
                  danger &= !(appropGroups.some (function (group) {
-                    return truthy (group.superuser);  
+                    return truthy (group.super_user);  
                  }));
              }
              return danger;

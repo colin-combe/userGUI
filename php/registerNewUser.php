@@ -37,7 +37,7 @@ try {
         // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
         pg_query("BEGIN") or die("Could not start transaction\n");
         $hash = $pword ? password_hash ($pword, PASSWORD_BCRYPT) : "";
-        $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, see_all, can_add_search, super_user, email, max_aas, max_spectra) VALUES($1, $3, FALSE, FALSE, FALSE, $2, 100000000, 100000) RETURNING id, user_name");
+        $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, email, max_aas, max_spectra) VALUES($1, $3, $2, 100000000, 100000) RETURNING id, user_name");
         $result = pg_execute($dbconn, "newUser", [$username, $email, $hash]);
         $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         $returnedID = $returnRow["id"];
