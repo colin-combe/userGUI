@@ -195,7 +195,7 @@ CLMSUI.buildUserAdmin = function () {
     }
     
     function typeCapabilities (obj) {
-        var desc = [];
+        var desc = [obj.name.toUpperCase().replace("_", " ")];
         if (truthy (obj.superuser)) { desc.push("Superuser"); }
         if (truthy (obj.can_add_search)) { 
             desc.push("Can add"+(obj.max_search_count ? " up to "+obj.max_search_count : "")+" searches");
