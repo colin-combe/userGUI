@@ -1,0 +1,5 @@
+<Files "userReg.html">
+    Order deny,allow
+    Deny from all
+    Allow from 129.215 130.149
+</Files>
