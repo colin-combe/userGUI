@@ -34,11 +34,16 @@ else {
             $returnedData[$i]['user_group'] = explode(",", trim($returnedData[$i]['user_group'], '{}'));    // explode string to array
             $returnedData[$i]['user_group'] = array_diff ($returnedData[$i]['user_group'], array("NULL"));  // Strip out nulls
         }
+        
+        // Get current user's name
+        pg_prepare ($dbconn, "getUsername", "SELECT user_name FROM users WHERE id = $1");
+        $result = pg_execute ($dbconn, "getUsername", [$_SESSION['user_id']]);
+        $username = pg_fetch_all($result)[0]['user_name'];                                            
              
         //close connection
         pg_close($dbconn);
 
-        echo json_encode (array ("status" => "success", "data" => $returnedData, "groupTypeData" => $groupData, "superuser" => $isSuperUser, "userid" => $_SESSION["user_id"]));
+        echo json_encode (array ("status" => "success", "data" => $returnedData, "groupTypeData" => $groupData, "superuser" => $isSuperUser, "userid" => $_SESSION["user_id"], "username" => $username));
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
