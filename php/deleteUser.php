@@ -7,6 +7,7 @@ if (empty ($_SESSION['session_name'])) {
 }
 else { 
     include('../../connectionString.php');
+    include ('../../../xi_ini/emailInfo.php');
     
     $dbconn = pg_connect($connectionString);
     try {

@@ -1,7 +1,4 @@
 <?php
-    //include('../../connectionString.php');
-
-
     // from http://stackoverflow.com/questions/2021624/string-sanitizer-for-filename
     function normalizeString($str = '') {
         $str = filter_var($str, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
@@ -141,7 +138,7 @@
     }
 
     function validateCaptcha ($captcha) {
-        include ('../../connectionString.php');
+        include ('../../../xi_ini/emailInfo.php');
         
         $ip = $_SERVER['REMOTE_ADDR'];
         $response=file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secretRecaptchaKey."&response=".$captcha."&remoteip=".$ip);
@@ -174,7 +171,7 @@
     }
 
     function sendPasswordResetMail ($email, $id, $userName, $count, $dbconn) {
-        include ('../../connectionString.php');
+        include ('../../../xi_ini/emailInfo.php');
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
         
@@ -189,16 +186,20 @@
                 $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
                 error_log (print_r (pg_fetch_assoc ($result), true));
                 
-                $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
-                $mail->MsgHTML("Use this link to reset your Xi account's password<br><A href='".$url."'>".$url."</A>");
-                error_log (print_r ($ptoken, true));
-                error_log (print_r ($id, true));
+                if ($result) {
+                    $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
+                    $mail->MsgHTML("Use this link to reset your Xi account's password within 2 hours<br><A href='".$url."'>".$url."</A>");
+                    error_log (print_r ($ptoken, true));
+                    error_log (print_r ($id, true));
 
-                pg_query("COMMIT");
-                
-                if(!$mail->Send()) {
-                    error_log (print_r ("failsend", true));
-                }   
+                    pg_query("COMMIT");
+
+                    if(!$mail->Send()) {
+                        error_log (print_r ("failsend", true));
+                    }   
+                } else {
+                    throw new Exception ("Sorry, there has been a database error. Alert your Xi administrator.");
+                }
             } else {
                 throw new Exception ("More than one username is registered with this email address.");
             }
