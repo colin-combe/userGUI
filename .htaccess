@@ -1,5 +1,6 @@
-<Files "userReg.html">
+<Files "./userReg.html">
     Order deny,allow
     Deny from all
+    # Edinburgh and Berlin
     Allow from 129.215 130.149
 </Files>
