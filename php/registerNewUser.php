@@ -8,7 +8,7 @@ try {
 
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
     $email = validatePostVar ("email", '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/', true);
-    $username = validatePostVar ("username", '/^[a-zA-Z0-9-_]{4,16}/');
+    $username = validatePostVar ("username", '/^[a-zA-Z0-9-_.]{4,16}/');
     $pword = validatePostVar ("pass", '/.{6,}/');
        
     // validate captcha
