@@ -10,7 +10,7 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    //console.disableLogging();
+    console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     var spinner = new Spinner ({
@@ -65,10 +65,11 @@ CLMSUI.buildUserAdmin = function () {
                     else if (response.status == "success") {
                        successFunc (response);
                     } else {
-                        CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg, response.error);
+                        CLMSUI.jqdialogs.errorDialog ("popErrorDialog", response.error || errorMsg, response.error);
                     }
                 },
                 error: function (jqXhr, textStatus, errorThrown) {  
+                    console.log ("error", jqXhr, textStatus, errorThrown);
                     CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
                 },
                 complete : function () {
@@ -245,7 +246,7 @@ CLMSUI.buildUserAdmin = function () {
         
         d3.selectAll(".ms-drop").selectAll("li label")
             .attr("title", function(d,i) {
-                return typeCapabilities (optionList["user_group"][i]);
+                return typeCapabilities (optionList.user_group[i]);
             })
         ;
     }
@@ -450,7 +451,7 @@ CLMSUI.buildUserAdmin = function () {
              var danger = (isSuperUser && jsonObj.id === userId);
              if (danger) {
                  var set = d3.set (jsonObj.user_group);
-                 var appropGroups = optionLists["user_group"].filter (function (userGroup) {
+                 var appropGroups = optionLists.user_group.filter (function (userGroup) {
                     return set.has (userGroup.id);
                  });
                  danger &= !(appropGroups.some (function (group) {
@@ -512,7 +513,7 @@ CLMSUI.buildUserAdmin = function () {
                      function () { selfDelete ? window.location.replace ("./userReg.html") : removeRows ([deletingID], udata); }
                  );
 
-                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", (selfDelete ? "You" : "This user") +" will be permanently deleted and cannot be restored.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", (selfDelete ? "Your" : "This user's") +" account and associated data will be disabled and cannot be restored using this page later.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
              },
              
              reset_PasswordUser: function (udata, dArray) {
