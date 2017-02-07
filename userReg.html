@@ -36,7 +36,7 @@
                   
                 <div class="control-group">
                     <label for="email">Email Address</label>
-                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b" required/>
+                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="" required/>
                     <span class="error">&lt; Hotmail/Yahoo/Gmail addresses not supported</span>
                     <span class="error2"></span>
                 </div>
@@ -65,6 +65,8 @@
                     $.getJSON("./json/config.json", function (config) {
                         
                         $("#recaptchaWidget").attr("data-sitekey", config.googleRecaptchaPublicKey);
+                        var splitRegex = config.emailRegex.split("/");
+                        $("#email").attr("pattern", splitRegex[1]);
                         
                         var spinner = new Spinner ({
                             lines: 13, // The number of lines to draw

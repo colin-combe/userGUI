@@ -47,7 +47,7 @@ else {
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
-        echo (json_encode (array ("error" => "Error when querying database for user<br>".$date)));
+        echo (json_encode (array ("error" => getTextString("userDatabaseError")."<br>".$date)));
     }
 }
 

@@ -3,7 +3,7 @@ include ('../../connectionString.php');
 include ('utils.php');
 
 try {   
-    $ptoken = validatePostVar ("token", '/.{28,}/', false, null, "Token supplied is non-existent or too short");
+    $ptoken = validatePostVar ("token", '/.{28,}/', false, null, getTextString("tokenShortError"));
     $pword = validatePostVar ("new-login-pass", '/.{6,}/');
         
     $dbconn = pg_connect($connectionString);
@@ -29,20 +29,19 @@ try {
                 $result = pg_execute($dbconn, "setNewPassword", [$id, $hash]);
                 pg_query("COMMIT");
                 
-                $json = json_encode(array ("status"=>"success", "msg"=> "Password reset complete. Thankyou."));
-                echo ($json);
+                echo (json_encode(array ("status"=>"success", "msg"=> getTextString("passwordResetSuccess"))));
             }
             else {
-                echo (json_encode(array ("status"=>"success", "msg"=> "Token has expired (2 hour limit). Please obtain a new email via the login page.")));
+                echo (json_encode(array ("status"=>"success", "msg"=> getTextString("tokenExpiredError"))));
             }
         } else {
-            echo (json_encode(array ("status"=>"fail", "msg"=> "Token not matched to any user. Password update failed.")));
+            echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("tokenMismatchError"))));
         }
 
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when resetting a password";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("passwordResetCatchall");
         error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
     }
@@ -52,7 +51,7 @@ try {
 
 } catch (Exception $e) {
      $date = date("d-M-Y H:i:s");
-     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to access the Xi database";
+     $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("databaseConnectError");
      error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
 }

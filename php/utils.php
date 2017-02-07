@@ -145,7 +145,7 @@
         $responseKeys = json_decode($response,true);
         error_log (print_r ($responseKeys, true));
         if (intval($responseKeys["success"]) !== 1) {
-            echo (json_encode(array ("status"=>"fail", "msg"=> "Captcha failure.", "revalidate"=> true)));
+            echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("captchaError"), "revalidate"=> true)));
             exit;
         } 
     }
@@ -176,44 +176,54 @@
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
         
         error_log (print_r ($email, true));
-        if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
+        
+        if (strlen($email) > 2) {
+            if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
 
-            if ($count == 1) {
-                error_log (print_r ($count, true));
-                $mail = makePHPMailerObj ($mailInfo, $email, $userName, "Xi Password Reset");
-                $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
-                pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2, ptoken_timestamp = now() WHERE id = $1");
-                $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
-                error_log (print_r (pg_fetch_assoc ($result), true));
-                
-                if ($result) {
-                    $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
-                    $mail->MsgHTML("Use this link to reset your Xi account's password within 2 hours<br><A href='".$url."'>".$url."</A>");
-                    error_log (print_r ($ptoken, true));
-                    error_log (print_r ($id, true));
+                if ($count == 1) {
+                    error_log (print_r ($count, true));
+                    $mail = makePHPMailerObj ($mailInfo, $email, $userName, getTextString("resetPasswordEmailHeader"));
+                    $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
+                    pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2, ptoken_timestamp = now() WHERE id = $1");
+                    $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
+                    error_log (print_r (pg_fetch_assoc ($result), true));
 
-                    pg_query("COMMIT");
+                    if ($result) {
+                        $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
+                        $mail->MsgHTML (getTextString ("resetPasswordEmailBody", [$url]));
+                        error_log (print_r ($ptoken, true));
+                        error_log (print_r ($id, true));
 
-                    if(!$mail->Send()) {
-                        error_log (print_r ("failsend", true));
-                    }   
+                        pg_query("COMMIT");
+
+                        if(!$mail->Send()) {
+                            error_log (print_r ("failsend", true));
+                        }   
+                    } else {
+                        throw new Exception (getTextString("genDatabaseError"));
+                    }
                 } else {
-                    throw new Exception ("Sorry, there has been a database error. Alert your Xi administrator.");
+                    throw new Exception (getTextString("emailTaken"));
                 }
             } else {
-                throw new Exception ("More than one username is registered with this email address.");
+                throw new Exception (getTextString("emailInvalid"));
             }
         } else {
-            throw new Exception ("Invalid email address. Password reset mail cannot be sent.");
+            throw new Exception (getTextString("emailEmpty"));
         }
     }
 
-    function getTextString ($key) {
+    function getTextString ($key, $vars = NULL) {
         if (!isset($_strings)) {
             error_log ("init strings");
-            $_strings = json_decode (file_get_contents ("./users.json"), true);
+            $_strings = json_decode (file_get_contents ("../json/msgs.json"), true);
         }
-        error_log (print_r ($_strings, true));
-        return $_strings [$key];
+        $lang = "en";
+        $str = $_strings[$lang][$key];
+        if ($vars) {
+            $str = preg_replace(array('/\$1/', '/\$2/', '/\$3/', '/\$4/', '/\$5/', '/\$6/', '/\$7/', '/\$8/', '/\$9/'), $vars, $str);
+        }
+        error_log (print_r ($str, true));
+        return $str;
     }
 ?>

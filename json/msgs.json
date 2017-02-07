@@ -1,0 +1,40 @@
+{
+    "en" : {
+        "emailInvalid": "Can't send password reset email due to invalid email address.",
+        "emailTaken": "Can't send password reset email. More than one username is registered with this email address.",
+        "emailEmpty": "Can't send password reset email. There is no associated email address for this username.",
+        "tokenShortError": "Token supplied is non-existent or too short.",
+        "tokenExpiredError": "Token has expired (2 hour limit). Please obtain a new email via the login page.",
+        "tokenMismatchError": "Token not matched to any user, maybe overridden by a newer request. Password update failed.",
+        "passwordEmailCatchall": "An Error occurred when attempting to send a retrieve password email.",
+        "passwordResetSuccess": "Password reset complete. Thankyou.",
+        "resetPasswordEmailInfo": "An email has been sent. Use the link in the email within 2 hours to reset your password.",
+        "passwordResetCatchall": "An Error occurred when resetting a password.",
+        "resetPasswordEmailHeader": "Xi Password Reset",
+        "resetPasswordEmailBody": "Use this link to reset your Xi account's password within 2 hours<br><A href='$1'>$1</A>",
+        
+        "genDatabaseError": "Sorry, there has been a database error. Alert your Xi administrator.",
+        "databaseConnectError": "An Error occurred when attempting to connect to the xi database",
+        "userDatabaseError": "An Error occurred when reading a user's details in the database.",
+        
+        "updatePermissionError": "You don't have permission to update the details of another user",
+        "userDatabaseUpdateCatchall": "An Error occurred when updating a user's details in the database.",
+        
+        "deletePermissionError": "You don't have permission to delete a user",
+        "deletedFailedEmailWarning": "User deleted but failed to send email to registered address",
+        "deletedMissingEmailWarning": "User deleted but user had no valid email address to send deletion email to",
+        "deleteCatchallError": "An Error occurred when attempting to delete a user",
+        "deleteUserEmailHeader": "Xi Account Deletion",
+        "deleteUserEmailBody": "Your account on Xi was deleted either by yourself or by an administrator. You can re-register by visiting the Xi registration page.",
+        
+        "newUserUniqueEmailError": "< The email address $1 is already in use. Please choose another.",
+        "newUserUniqueNameError": "< The username $1 is already taken. Please choose another.",
+        "newUserEmailError": "Mailer Error: $1",
+        "newUserEmailInfo": "New user $1 added. A confirmation email has been sent.",
+        "newUserErrorCatchall": "An Error occurred when adding a new user to the database",
+        "newUserEmailHeader": "Xi Registration",
+        "newUserEmailBody": "You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.",
+        
+        "captchaError": "Captcha Failure"
+    }
+}

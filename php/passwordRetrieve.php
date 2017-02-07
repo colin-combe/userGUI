@@ -20,15 +20,15 @@ try {
         pg_prepare ($dbconn, "doesEmailExist", "SELECT id, user_name, email FROM users WHERE user_name = $1 OR email = $1");
         $result = pg_execute($dbconn, "doesEmailExist", [$pid]);
         $count = intval(pg_numrows($result));
-        $returnRow = pg_fetch_assoc ($result); 
-
+        $returnRow = pg_fetch_assoc ($result);
+        
         sendPasswordResetMail ($returnRow['email'], $returnRow['id'], $returnRow['user_name'], $count, $dbconn);
 
-        echo (json_encode(array ("status"=>"success", "msg"=> getTextString("resetPasswordEmailBody"))));
+        echo (json_encode(array ("status"=>"success", "msg"=> getTextString("resetPasswordEmailInfo"))));
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to send a retrieve password email";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("passwordEmailCatchall");
         error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date, "revalidate"=> true)));
     }
@@ -38,7 +38,7 @@ try {
 
 } catch (Exception $e) {
     $date = date("d-M-Y H:i:s");
-     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when attempting to connect to the xi database";
+     $msg = ($e->getMessage()) ? ($e->getMessage()) : $getTextString("databaseConnectError");
     error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "msg"=> $msg." ".$date, "revalidate"=> true)));
 }

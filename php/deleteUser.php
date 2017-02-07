@@ -52,7 +52,7 @@ else {
             $result = pg_execute($dbconn, "disableUser", [$_POST["id"]]);
             error_log (print_r ($returnRow, true));
         } else {
-            throw new Exception ("You don't have permission to delete a user");
+            throw new Exception (getTextString("deletePermissionError"));
         }
 
          pg_query("COMMIT");
@@ -61,21 +61,21 @@ else {
             require_once ('../vendor/php/PHPMailer-master/class.phpmailer.php');
             require_once ('../vendor/php/PHPMailer-master/class.smtp.php');
 
-            $mail = makePHPMailerObj ($mailInfo, $email, $username, "Xi Account Deletion");
+            $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("deleteUserEmailHeader"));
             $mail->MsgHTML(getTextString("deleteUserEmailBody"));
 
             if(!$mail->Send()) {
-                throw new Exception ("User deleted but failed to send email to registered address");
+                throw new Exception (getTextString ("deletedFailedEmailWarning"));
             } 
         } else {
-            throw new Exception ("User deleted but user had no valid email address to send deletion email to");
+            throw new Exception (getTextString ("deletedMissingEmailWarning"));
         }
 
          echo (json_encode(array ("status"=>"success", "deletedUser"=>$returnRow)));
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when removing a user from the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString ("deleteCatchallError");
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 

@@ -6,8 +6,10 @@ include ('utils.php');
 try {
     //error_log (print_r ($_POST, true));   // This printed passwords in plain text to the php log. Lol.
 
+    $config = json_decode (file_get_contents ("../json/config.json"), true);
+    
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
-    $email = validatePostVar ("email", '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/', true);
+    $email = validatePostVar ("email", $config["emailRegex"], true);
     $username = validatePostVar ("username", '/^[a-zA-Z0-9-_.]{4,16}/');
     $pword = validatePostVar ("pass", '/.{6,}/');
        
@@ -21,7 +23,7 @@ try {
         $result = pg_execute($dbconn, "doesUserExist", [$username]);
         $returnRow = pg_fetch_assoc ($result);
         if (intval($returnRow["count"]) > 0) {
-            echo (json_encode(array ("status"=>"fail", "field"=> "username", "msg"=>"< The username ".$username." is already taken. Please choose another.", "revalidate"=> true)));
+            echo (json_encode(array ("status"=>"fail", "field"=> "username", "msg"=>getTextString("newUserUniqueNameError", [$username]), "revalidate"=> true)));
             exit;
         }
         
@@ -30,7 +32,7 @@ try {
         $result = pg_execute($dbconn, "doesEmailExist", [$email]);
         $returnRow = pg_fetch_assoc ($result);
         if (intval($returnRow["count"]) > 0) {
-            echo (json_encode(array ("status"=>"fail", "field"=> "email", "msg"=>"< The email address ".$email." is already in use. Please choose another.", "revalidate"=> true)));
+            echo (json_encode(array ("status"=>"fail", "field"=> "email", "msg"=>getTextString("newUserUniqueEmailError", [$email]), "revalidate"=> true)));
             exit;
         }
 
@@ -51,21 +53,21 @@ try {
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
 
-        $mail = makePHPMailerObj ($mailInfo, $email, $username, "Xi Registration");
+        $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
         $mail->MsgHTML(getTextString("newUserEmailBody"));
         
         if(!$mail->Send()) {
              error_log (print_r ("failsend", true));
-            echo json_encode (array ("status"=>"fail", "msg"=>"Mailer Error: ".$mail->ErrorInfo, "revalidate"=> true));
+            echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
         } 
         else {
-            $json = json_encode(array ("status"=>"success", "msg"=> "New user ".$username." added. A confirmation email has been sent.", "username"=>$username));
+            $json = json_encode(array ("status"=>"success", "msg"=> getTextString("newUserEmailInfo", [$username]), "username"=>$username));
             echo ($json);
         }
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("newUserErrorCatchall");
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date, "revalidate"=> true)));
     }
 
@@ -73,7 +75,7 @@ try {
     pg_close($dbconn);
 
 } catch (Exception $e) {
-     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when adding a new user to the database";
+     $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("newUserErrorCatchall");
      error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
 }

@@ -9,6 +9,7 @@ else {
     include('../../connectionString.php');
     
     $dbconn = pg_connect($connectionString);
+    
     try {
         pg_query("BEGIN") or die("Could not start transaction\n");
         
@@ -17,16 +18,17 @@ else {
             $result = pg_execute($dbconn, "getUserEmail", [$_POST['id']]);
             $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
             
-            if (isset($returnRow['email'])) {
+            if (isset($returnRow['email']) && strlen($returnRow['email']) > 2) {
                 $_POST['email'] = $returnRow['email'];
+                 $config = json_decode (file_get_contents ("../json/config.json"), true);
                 
-                if (validatePostVar ("email", '/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/', true, null, "Invalid email address")) {
+                if (validatePostVar ("email", $config["emailRegex"], true, null, "Invalid email address")) {
                     sendPasswordResetMail ($returnRow['email'], $_POST['id'], $returnRow['user_name'], 1, $dbconn);
                 } else {
-                    throw new Exception ("Stored email address is malformed. Password reset mail cannot be sent.");
+                    throw new Exception (getTextString("emailInvalid"));
                 }
             } else {
-                throw new Exception ("Stored email address is empty. Password reset mail cannot be sent.");
+                throw new Exception (getTextString("emailEmpty"));
             }
         } 
 
@@ -35,7 +37,7 @@ else {
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when reading a user's details in the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString ("userDatabaseError");
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 

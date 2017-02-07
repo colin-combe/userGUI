@@ -10,7 +10,7 @@ CLMSUI.buildUserAdmin = function () {
             console.log = function () {};
         };
     })(console.log);
-    console.disableLogging();
+    //console.disableLogging();
     
     var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
     var spinner = new Spinner ({
@@ -82,17 +82,26 @@ CLMSUI.buildUserAdmin = function () {
     
      // Upon document being ready run this function to load in data
      $(document).ready (function () {      
-         return makeAjaxFunction (
-            "php/readUsers.php", 
-            null, 
-            "An Error occurred when attempting to contact the Xi Database instance.<br>If this continues please contact your Xi Administrator.",
-            function (response) {
-                d3.select("#username").text(response.username);
-                makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
-            }
-         )();
+         $.getJSON("./json/config.json", function (config) {
+            // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
+             var emailRegexParts = splitRegex (config.emailRegex);
+            CLMSUI.regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (emailRegexParts[1], emailRegexParts[2]), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
+
+            return makeAjaxFunction (
+                "php/readUsers.php", 
+                null, 
+                "An Error occurred when attempting to contact the Xi Database instance.<br>If this continues please contact your Xi Administrator.",
+                function (response) {
+                    d3.select("#username").text(response.username);
+                    makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
+                }
+             )();
+         });
      });  
     
+    function splitRegex (regex) {
+        return regex.split("/");
+    }
              
     function d3SelectParent (elem) {
         return d3.select (elem.parentNode);
@@ -115,9 +124,6 @@ CLMSUI.buildUserAdmin = function () {
         });
         return indices;
     }
-    
-    // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
-    var regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (/\b[\w\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\w\.-]+\.\w{2,4}\b/i), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
     
     function equals (d) {
         if ($.isArray(d.value) && $.isArray(d.originalValue)) {
@@ -160,7 +166,7 @@ CLMSUI.buildUserAdmin = function () {
     }
     
     function isDatumValid (d) {
-        var reg = regExpPatterns[d.key];
+        var reg = CLMSUI.regExpPatterns[d.key];
         return !reg || reg.test(d.value || "");
     }
     

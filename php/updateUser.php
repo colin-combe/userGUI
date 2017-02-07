@@ -56,7 +56,7 @@ else {
                 $result = pg_execute($dbconn, "updateUser2", $qParams);
                 $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
             } else {
-                throw new Exception ("You don't have permission to update the details of another user");
+                throw new Exception (getTextString("updatePermissionError"));
             }
         }
 
@@ -65,7 +65,7 @@ else {
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
-         $msg = ($e->getMessage()) ? ($e->getMessage()) : "An Error occurred when updating a user's details in the database";
+         $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("userDatabaseUpdateCatchall");
          echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
     }
 

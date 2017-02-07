@@ -1,3 +1,4 @@
 {
-    "googleRecaptchaPublicKey": "6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2"
+    "googleRecaptchaPublicKey": "6Le0WQwUAAAAAHc-iZVLcvIiFHNTdIH-btjCx4F2",
+    "emailRegex": "/\\b[\\w\\.-]+@((?!gmail|googlemail|yahoo|hotmail).)[\\w\\.-]+\\.\\w{2,4}\\b/i"
 }
