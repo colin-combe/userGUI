@@ -53,8 +53,8 @@
           <form id="login_form" name="login_form" method="post" action="../util/checkLogin2.php" class="login-form">
             <div class="control-group">
                 <label for="login-name">Username</label>
-                <input type="text" value="" placeholder="Username" id="login-name" name="login-name" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Between 4 and 16 Alphanumeric characters only please')" required/>
-                <span class="error">&lt; Between 4 and 16 Alphanumeric characters only please</span>
+                <input type="text" value="" placeholder="Username" id="login-name" name="login-name" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" required/>
+                <span class="error" id="login-name-errorMsg"></span>
                 <span class="error2"></span>
             </div>
 
@@ -76,7 +76,7 @@
               <span class="error2"></span>
             </div>
             
-            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
+            <div id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
             <span class="error2">&lt; Please check the captcha form</span>
             <br/>
             
@@ -89,29 +89,41 @@
         <script type="text/javascript"> 
             $(document).ready(function(e) {
                 $.getJSON("./json/config.json", function (config) {
-                        
-                    $("#recaptchaWidget").attr("data-sitekey", config.googleRecaptchaPublicKey);
-                                            
-                    var spinner = new Spinner ({
-                        lines: 13, // The number of lines to draw
-                        length: 5, // The length of each line
-                        width: 2, // The line thickness
-                        radius: 7, // The radius of the inner circle
-                    });
-                    
-                    // divert form submit action to this javascript function
-                    $("#login_form").submit (function(e) {
-                        $(".error2").css("display", "none");
-                        CLMSUI.loginForms.ajaxPost (e.target);
-                        e.preventDefault();
-                    });
+                     $.getJSON("./json/msgs.json", function (msgs) {
+                        function getMsg (key) {
+                            return msgs["en"][key];
+                        }
 
-                    $("#password_retrieve_form").submit (function(e) {
-                        $(".error2").css("display", "none");
-                        spinner.spin (document.getElementById ("spinBox"));
-                        CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
-                        e.preventDefault();
-                    });
+                        $("#recaptchaWidget")
+                            .attr("class", "g-recaptcha")
+                            .attr("data-sitekey", config.googleRecaptchaPublicKey)
+                        ;
+
+                         var nameValidationMsg = getMsg("clientNameValidationInfo");
+                        $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
+                        $("#login-name-errorMsg").text("< "+nameValidationMsg);
+                         
+                        var spinner = new Spinner ({
+                            lines: 13, // The number of lines to draw
+                            length: 5, // The length of each line
+                            width: 2, // The line thickness
+                            radius: 7, // The radius of the inner circle
+                        });
+
+                        // divert form submit action to this javascript function
+                        $("#login_form").submit (function(e) {
+                            $(".error2").css("display", "none");
+                            CLMSUI.loginForms.ajaxPost (e.target);
+                            e.preventDefault();
+                        });
+
+                        $("#password_retrieve_form").submit (function(e) {
+                            $(".error2").css("display", "none");
+                            spinner.spin (document.getElementById ("spinBox"));
+                            CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
+                            e.preventDefault();
+                        });
+                     });
                 });
             });
         </script>

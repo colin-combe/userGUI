@@ -14,8 +14,9 @@
         "resetPasswordEmailBody": "Use this link to reset your Xi account's password within 2 hours<br><A href='$1'>$1</A>",
         
         "genDatabaseError": "Sorry, there has been a database error. Alert your Xi administrator.",
-        "databaseConnectError": "An Error occurred when attempting to connect to the xi database",
+        "databaseConnectError": "An Error occurred when attempting to connect to the Xi database.<br>If this continues please contact your Xi Administrator.",
         "userDatabaseError": "An Error occurred when reading a user's details in the database.",
+        "connectionErrorTitle": "Connection Error",
         
         "updatePermissionError": "You don't have permission to update the details of another user",
         "userDatabaseUpdateCatchall": "An Error occurred when updating a user's details in the database.",
@@ -23,7 +24,7 @@
         "deletePermissionError": "You don't have permission to delete a user",
         "deletedFailedEmailWarning": "User deleted but failed to send email to registered address",
         "deletedMissingEmailWarning": "User deleted but user had no valid email address to send deletion email to",
-        "deleteCatchallError": "An Error occurred when attempting to delete a user",
+        "deleteCatchallError": "An Error occurred when attempting to delete the user",
         "deleteUserEmailHeader": "Xi Account Deletion",
         "deleteUserEmailBody": "Your account on Xi was deleted either by yourself or by an administrator. You can re-register by visiting the Xi registration page.",
         
@@ -35,6 +36,21 @@
         "newUserEmailHeader": "Xi Registration",
         "newUserEmailBody": "You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.",
         
-        "captchaError": "Captcha Failure"
+        "captchaError": "Captcha Failure",
+        
+        "clientNameValidationInfo": "Between 4 and 16 Alphanumeric characters only please",
+        "clientPasswordValidationInfo": "At least 6 characters required",
+        "clientEmailValidationInfo": "Hotmail/Yahoo/Gmail addresses not supported",
+        
+        "clientRevokeSuperuser": "This change will revoke your own superuser role and cannot be undone (by yourself).<br>Are You Sure?",
+        "clientResetPassword": "This will send a link to the user's email to reset their password.<br>Are You Sure?",
+        "clientDeleteUser": "This user's account and associated data will be disabled and cannot be restored using this page later.<br>Are You Sure?",
+        "clientDeleteYourself": "Your account and associated data will be disabled and cannot be restored using this page later.<br>Are You Sure?",
+        
+        "pleaseConfirm": "Please Confirm",
+        "proceedDelete": "Proceed with Delete",
+        "proceedEmail": "Proceed with Email",
+        "proceedUpdate": "Proceed with Update",
+        "cancel": "Cancel this Action"
     }
 }

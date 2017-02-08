@@ -70,7 +70,7 @@ CLMSUI.buildUserAdmin = function () {
                 },
                 error: function (jqXhr, textStatus, errorThrown) {  
                     console.log ("error", jqXhr, textStatus, errorThrown);
-                    CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), "Connection Error");
+                    CLMSUI.jqdialogs.errorDialog ("popErrorDialog", errorMsg+"<br>"+errorDateFormat (new Date()), getMsg("connectionErrorTitle"));
                 },
                 complete : function () {
                     spinner.stop();
@@ -79,23 +79,30 @@ CLMSUI.buildUserAdmin = function () {
          };
      }
     
+     function getMsg (key) {
+         return CLMSUI.msgs["en"][key];
+     }
+    
     
      // Upon document being ready run this function to load in data
      $(document).ready (function () {      
          $.getJSON("./json/config.json", function (config) {
-            // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
-             var emailRegexParts = splitRegex (config.emailRegex);
-            CLMSUI.regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (emailRegexParts[1], emailRegexParts[2]), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
+             $.getJSON("./json/msgs.json", function (msgs) {
+                 CLMSUI.msgs = msgs;
+                // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
+                 var emailRegexParts = splitRegex (config.emailRegex);
+                CLMSUI.regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (emailRegexParts[1], emailRegexParts[2]), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
 
-            return makeAjaxFunction (
-                "php/readUsers.php", 
-                null, 
-                "An Error occurred when attempting to contact the Xi Database instance.<br>If this continues please contact your Xi Administrator.",
-                function (response) {
-                    d3.select("#username").text(response.username);
-                    makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
-                }
-             )();
+                return makeAjaxFunction (
+                    "php/readUsers.php", 
+                    null, 
+                    getMsg ("databaseConnectError"),
+                    function (response) {
+                        d3.select("#username").text(response.username);
+                        makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
+                    }
+                 )();
+             });
          });
      });  
     
@@ -165,19 +172,19 @@ CLMSUI.buildUserAdmin = function () {
         });
     }
     
-    function isDatumValid (d) {
+    function isDatumValid (d, isSuperUser) {
         var reg = CLMSUI.regExpPatterns[d.key];
-        return !reg || reg.test(d.value || "");
+        return !reg || reg.test(d.value || "") || (isSuperUser && !d.value);    // superusers can enter empty values
     }
     
-    function enableUpdateButton (id) {
+    function enableUpdateButton (id, isSuperUser) {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
         var d3Data = d3Sel.data();
         var enabled = d3Data.some (function (d3Datum) {
             return !equals(d3Datum);
         });     
         enabled &= d3Data.every (function (d3Datum) { 
-            return isDatumValid (d3Datum);
+            return isDatumValid (d3Datum, isSuperUser);
         });
 
         d3Sel
@@ -187,24 +194,33 @@ CLMSUI.buildUserAdmin = function () {
         ;
     }
     
-    function indicateValidValues (sel) {
+    function indicateValidValues (sel, isSuperUser) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
         sel.each (function(d) {
-            var invalid = !isDatumValid (d);
+            var invalid = !isDatumValid (d, isSuperUser);
             d3.select(this).classed("invalid", invalid);
         });
     }
     
-    function signalContentChange (d) {
+    function signalContentChange (d, isSuperUser) {
         d.value = d3.select(this).text();
         indicateValidValues (d3.select(this));
         indicateChangedValues (d3SelectParent(this));   // up to td not span element
-        enableUpdateButton (d.id);
+        enableUpdateButton (d.id, isSuperUser);
+    }
+    
+    // Used when entire row content check needs done i.e. after database update
+    function signalContentChangeRow (id, isSuperUser) {
+        var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
+        d3Sel.each (function(d) {
+            indicateChangedValues (d3.select(this));    
+        });
+        enableUpdateButton (id, isSuperUser);
     }
     
     function typeCapabilities (obj) {
         var desc = [obj.name.toUpperCase().replace("_", " ")];
-        if (truthy (obj.superuser)) { desc.push("Superuser"); }
+        if (truthy (obj.super_user)) { desc.push("Superuser"); }
         if (truthy (obj.can_add_search)) { 
             desc.push("Can add"+(obj.max_search_count ? " up to "+obj.max_search_count : "")+" searches");
         } else if (obj.can_add_search != undefined) { 
@@ -212,7 +228,7 @@ CLMSUI.buildUserAdmin = function () {
         }
         if (truthy (obj.can_add_search) && obj.max_searches_per_day) { desc.push(obj.max_searches_per_day + " per day"); }
         if (truthy (obj.see_all)) { 
-            desc.push ("Can see other users public searches");
+            desc.push (truthy (obj.super_user) ? "Can see ALL searches" : "Can see other users public searches");
         } else if (obj.see_all != undefined) {
             desc.push ("Can only see own searches");
         }
@@ -223,7 +239,7 @@ CLMSUI.buildUserAdmin = function () {
         return d.replace (/_/g, " ");
     }
     
-    function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList) {
+    function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList, isSuperUser) {
         var selectSelect = d3.select(tableID).selectAll("select");
             
         $(selectSelect).each (function() {
@@ -239,7 +255,7 @@ CLMSUI.buildUserAdmin = function () {
                     d.value = [obj.value];  // replace the data value with the new value
                     
                     indicateChangedValues (d3.select(parent));   // up to td not input element
-                    enableUpdateButton (d.id);
+                    enableUpdateButton (d.id, isSuperUser);
                 },
             });
         });
@@ -332,9 +348,9 @@ CLMSUI.buildUserAdmin = function () {
                 if (elemType === "text") {
                     var span = d3Elem.append("span")
                         .text(function(d) { return d.value || ""; })
-                        .on ("input", signalContentChange)
-                        .on ("keyup", signalContentChange)
-                        .on ("paste", signalContentChange)
+                        .on ("input", function(d) { signalContentChange.call (this, d, isSuperUser); })
+                        .on ("keyup", function(d) { signalContentChange.call (this, d, isSuperUser); })
+                        .on ("paste", function(d) { signalContentChange.call (this, d, isSuperUser); })
                         .attr ("contenteditable", tableSetting.editable.has(d.key))
                     ;
                     if (tableSetting.columnIcons[d.key]) {
@@ -363,7 +379,7 @@ CLMSUI.buildUserAdmin = function () {
                         .on ("click", function (d) {
                             d.value = !!!d.value;
                             indicateChangedValues (d3SelectParent(this));   // up to td not input element
-                            enableUpdateButton (d.id);
+                            enableUpdateButton (d.id, isSuperUser);
                         })
                     ;
                 }
@@ -391,7 +407,7 @@ CLMSUI.buildUserAdmin = function () {
                   
             // For each row, existing or new, decide some states
             rowJoin.each (function (d) {
-                enableUpdateButton (d.id);  // decide update button state
+                enableUpdateButton (d.id, isSuperUser);  // decide update button state
                 indicateChangedValues (d3.select(this).selectAll("td"));    // show if cell values have been altered from original
             }); 
             
@@ -404,7 +420,7 @@ CLMSUI.buildUserAdmin = function () {
 
             if (firstTime) { 
                 var selectColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["select"]);
-                makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists);
+                makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists, isSuperUser);
                 
                 var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
                 $("#"+baseId).dataTable ({
@@ -479,9 +495,9 @@ CLMSUI.buildUserAdmin = function () {
                  var updateUserAjax = makeAjaxFunction (
                      "php/updateUser.php", 
                      jsonObj, 
-                     "Update failed on the server before reaching the database",
+                     getMsg("userDatabaseUpdateCatchall"),
                      function () { 
-                         console.log ("updated obj", jsonObj);
+                         //console.log ("updated obj", jsonObj);
                         dArray.forEach (function(d) {
                             d.originalValue = d.value;
                         });
@@ -497,12 +513,13 @@ CLMSUI.buildUserAdmin = function () {
                             removeRows (otherUserIDs, udata);
                             */
                         } else {
-                             makeIndTable (tableSettings.users);
+                            signalContentChangeRow (dArray[0].id, isSuperUser);
+                             //makeIndTable (tableSettings.users);
                         }
                      }
                  );
                  if (removingOwnSuperuserStatus) {
-                     CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This change will revoke your own superuser role and cannot be undone (by yourself).<br>Are You Sure?", "Please Confirm", "Proceed with Update", "Cancel this Action", updateUserAjax);
+                     CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg("clientRevokeSuperuser"), getMsg("pleaseConfirm"), getMsg("proceedUpdate"), getMsg("cancel"), updateUserAjax);
                  } else {
                     updateUserAjax();
                  }
@@ -515,22 +532,22 @@ CLMSUI.buildUserAdmin = function () {
                  var deleteUserAjax = makeAjaxFunction (
                      "php/deleteUser.php", 
                      {id: deletingID}, 
-                     "Delete failed on the server before reaching the database",
+                     getMsg ("deleteCatchallError"),
                      function () { selfDelete ? window.location.replace ("./userReg.html") : removeRows ([deletingID], udata); }
                  );
 
-                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", (selfDelete ? "Your" : "This user's") +" account and associated data will be disabled and cannot be restored using this page later.<br>Are You Sure?", "Please Confirm", "Proceed with Delete", "Cancel this Action", deleteUserAjax);
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg(selfDelete ? "clientDeleteYourself" : "clientDeleteUser"), getMsg("pleaseConfirm"), getMsg("proceedDelete"), getMsg("cancel"), deleteUserAjax);
              },
              
              reset_PasswordUser: function (udata, dArray) {
                  var resetPasswordAjax = makeAjaxFunction (
                      "php/resetPasswordUser.php", 
                      {id: dArray[0].id}, 
-                     "Email notification failure, check email address is valid",
+                     getMsg ("emailInvalid"),
                      function () {}
                  );
 
-                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", "This will send a link to the user's email to reset their password.<br>Are You Sure?", "Please Confirm", "Proceed with Email", "Cancel this Action", resetPasswordAjax);
+                 CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg("clientResetPassword"), getMsg("pleaseConfirm"), getMsg("proceedEmail"), getMsg("cancel"), resetPasswordAjax);
              },
          };
          

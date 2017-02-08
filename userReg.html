@@ -29,27 +29,27 @@
                   
                 <div class="control-group">
                     <label for="email">Pick Username</label>
-                    <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Between 4 and 16 Alphanumeric characters only please')" required/>
-                    <span class="error">&lt; Between 4 and 16 Alphanumeric characters only please</span>
+                    <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" required/>
+                    <span class="error" id="username-errorMsg"></span>
                     <span class="error2"></span>
                 </div>
                   
                 <div class="control-group">
                     <label for="email">Email Address</label>
                     <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="" required/>
-                    <span class="error">&lt; Hotmail/Yahoo/Gmail addresses not supported</span>
+                    <span class="error" id="email-errorMsg"></span>
                     <span class="error2"></span>
                 </div>
 
                 <div class="control-group">
                     <label for="pass1">Password</label>
-                    <input type="password" value="" placeholder="Password" id="pass" name="pass" pattern=".{6,}" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('At least 6 characters required')" required/>
-                    <span class="error">&lt; At least 6 characters required</span>
+                    <input type="password" value="" placeholder="Password" id="pass" name="pass" pattern=".{6,}" oninput="this.setCustomValidity('')" required/>
+                    <span class="error" id="pass-errorMsg"></span>
                     <input type="checkbox" id="show-password">
                     <label for="show-password">Show password</label>
                 </div>
                   
-                <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
+                <div id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
                 <span class="error">&lt; Please check the captcha form</span>
                 <br/>
                   
@@ -63,32 +63,51 @@
             <script type="text/javascript"> 
                 $(document).ready(function(e) {
                     $.getJSON("./json/config.json", function (config) {
-                        
-                        $("#recaptchaWidget").attr("data-sitekey", config.googleRecaptchaPublicKey);
-                        var splitRegex = config.emailRegex.split("/");
-                        $("#email").attr("pattern", splitRegex[1]);
-                        
-                        var spinner = new Spinner ({
-                            lines: 13, // The number of lines to draw
-                            length: 5, // The length of each line
-                            width: 2, // The line thickness
-                            radius: 7, // The radius of the inner circle
-                        });
+                        $.getJSON("./json/msgs.json", function (msgs) {
+                            function getMsg (key) {
+                                return msgs["en"][key];
+                            }
+                            
+                            $("#recaptchaWidget")
+                                .attr("class", "g-recaptcha")
+                                .attr("data-sitekey", config.googleRecaptchaPublicKey)
+                            ;
+                            var splitRegex = config.emailRegex.split("/");
+                            $("#email").attr("pattern", splitRegex[1]);
+                            
+                            var nameValidationMsg = getMsg("clientNameValidationInfo");
+                            $("#username").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
+                            $("#username-errorMsg").text("< "+nameValidationMsg);
+                            
+                            var passwordValidationMsg = getMsg("clientPasswordValidationInfo");
+                            $("#pass").attr("oninvalid", "this.setCustomValidity('"+passwordValidationMsg+"')");
+                            $("#pass-errorMsg").text("< "+passwordValidationMsg);
+                            
+                            var emailValidationMsg = getMsg("clientEmailValidationInfo");
+                            $("#email-errorMsg").text("< "+emailValidationMsg);
 
-                        // Example 3:
-                        // - When checkbox changes, toggle password
-                        //   visibility based on its 'checked' property
-                        $('#show-password').change(function(){
-                          $('#pass').hideShowPassword($(this).prop('checked'));
-                        });
+                            var spinner = new Spinner ({
+                                lines: 13, // The number of lines to draw
+                                length: 5, // The length of each line
+                                width: 2, // The line thickness
+                                radius: 7, // The radius of the inner circle
+                            });
+
+                            // Example 3:
+                            // - When checkbox changes, toggle password
+                            //   visibility based on its 'checked' property
+                            $('#show-password').change(function(){
+                              $('#pass').hideShowPassword($(this).prop('checked'));
+                            });
 
 
-                        // divert form submit action to this javascript function
-                        $("#register_form").submit (function(e) {
-                            $(".error2").css("display", "none");
-                            spinner.spin (document.getElementById ("spinBox"));
-                            CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
-                            e.preventDefault();
+                            // divert form submit action to this javascript function
+                            $("#register_form").submit (function(e) {
+                                $(".error2").css("display", "none");
+                                spinner.spin (document.getElementById ("spinBox"));
+                                CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
+                                e.preventDefault();
+                            });
                         });
                     });
                 });
