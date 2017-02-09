@@ -486,7 +486,7 @@ CLMSUI.buildUserAdmin = function () {
          
          var perUserActions = {
              updateUser: function (udata, dArray, optionLists) {    // userdata should be arg for safety sake
-                 var jsonObj = {};
+                 var jsonObj = {id: udata[0].id};   // overwritten by actual user id if superuser
                  dArray.forEach (function(d) {
                      jsonObj[d.key] = d.value;
                  });
