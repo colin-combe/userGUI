@@ -109,7 +109,11 @@ header {
     display: inline-block;
 }
 
-footer > p::before {
+footer > p:first-child::before {
+    content: "Xi Administrator: ";
+}
+
+footer > p:last-child::before {
     content: "© Rappsilber Laboratory, 2017";
 }
 

@@ -68,6 +68,12 @@
                                 return msgs["en"][key];
                             }
                             
+                            var ximail = getMsg ("xiAdminEmail");
+                            $("#xiemail")
+                                .attr("href", "mailto:"+ximail)
+                                .text(ximail)
+                            ;
+                            
                             $("#recaptchaWidget")
                                 .attr("class", "g-recaptcha")
                                 .attr("data-sitekey", config.googleRecaptchaPublicKey)
@@ -115,6 +121,7 @@
         </div>
 
         <footer>
+            <p><a href="" id="xiemail"></a></p>
             <p></p>
         </footer>
 

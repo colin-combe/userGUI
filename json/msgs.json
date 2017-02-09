@@ -40,7 +40,7 @@
         
         "clientNameValidationInfo": "Between 4 and 16 Alphanumeric characters only please",
         "clientPasswordValidationInfo": "At least 6 characters required",
-        "clientEmailValidationInfo": "Hotmail/Yahoo/Gmail addresses not supported",
+        "clientEmailValidationInfo": "Please use your institutional email address",
         
         "clientRevokeSuperuser": "This change will revoke your own superuser role and cannot be undone (by yourself).<br>Are You Sure?",
         "clientResetPassword": "This will send a link to the user's email to reset their password.<br>Are You Sure?",
@@ -51,6 +51,8 @@
         "proceedDelete": "Proceed with Delete",
         "proceedEmail": "Proceed with Email",
         "proceedUpdate": "Proceed with Update",
-        "cancel": "Cancel this Action"
+        "cancel": "Cancel this Action",
+        
+        "xiAdminEmail": "xiadmin@ed.ac.uk"
     }
 }
