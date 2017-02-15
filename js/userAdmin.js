@@ -38,10 +38,17 @@ CLMSUI.buildUserAdmin = function () {
         // http://stackoverflow.com/questions/3519665/disable-automatic-url-detection-for-elements-with-contenteditable-flag-in-ie
         document.execCommand ("AutoUrlDetect", false, false); // This stops IE9+ auto-linking emails in contenteditable areas
         
-        // add function to datatables for sorting columns of checkboxes
+        // add function to datatables for sorting columns of checkboxes by checked or not
         $.fn.dataTable.ext.order['dom-checkbox'] = function ( settings, col ) {
             return this.api().column(col, {order:'index'}).nodes().map (function (td) {
                 return $('input', td).prop('checked') ? '1' : '0';
+            });
+        };
+        
+        // add function to datatables for sorting columns of buttons by disabled or not
+        $.fn.dataTable.ext.order['disabled-button'] = function ( settings, col ) {
+            return this.api().column(col, {order:'index'}).nodes().map (function (td) {
+                return $('input', td).prop('disabled') ? '1' : '0';
             });
         };
     }
@@ -419,10 +426,13 @@ CLMSUI.buildUserAdmin = function () {
             ;
 
             if (firstTime) { 
+                // Run initial DataTable setup and set various column properties
                 var selectColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["select"]);
                 makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists, isSuperUser);
                 
                 var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
+                var updateUserColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["update"], []);
+                var unsortableColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["reset_Password", "delete"], []);
                 $("#"+baseId).dataTable ({
                     "paging": true,
                     "jQueryUI": true,
@@ -430,6 +440,8 @@ CLMSUI.buildUserAdmin = function () {
                     "order": [[ 0, "desc" ]],   // order by first column
                     "columnDefs": [
                         {"orderDataType": "dom-checkbox", "targets": checkboxColumns},   // 2nd and 3rd columns will be sorted by checkbox value
+                        {"orderDataType": "disabled-button", "targets": updateUserColumns},   // this column will be sorted by disabled property value
+                        {"orderable": false, "targets": unsortableColumns}, // These columns shouldn't be sortable (all same value)
                     ]
                 });
             } else {

@@ -20,12 +20,19 @@ else {
 
         if ($isSuperUser || ($_SESSION['user_id'] === $_POST["id"])) {  // Only superuser or account owner can delete user account
             // Hide option
+            /*
             $hideSearches = pg_prepare ($dbconn, "hideAllUsersSearches", "UPDATE search SET hidden = true WHERE uploadedby = $1");
             $result = pg_execute($dbconn, "hideAllUsersSearches", [$_POST["id"]]);
             $hideAcqs = pg_prepare ($dbconn, "hideAllUsersAcqs", "UPDATE acquisition SET private = true WHERE uploadedby = $1");
             $result = pg_execute($dbconn, "hideAllUsersAcqs", [$_POST["id"]]);
             $hideSequences = pg_prepare ($dbconn, "hideAllUsersSeqs", "UPDATE sequence_file SET private = true WHERE uploadedby = $1");
             $result = pg_execute($dbconn, "hideAllUsersSeqs", [$_POST["id"]]);
+            // need to grab current email address for delete notification before overwriting it
+            $disableUser = pg_prepare($dbconn, "getCurrentUserDetails", "SELECT user_name,email FROM users WHERE id = $1"); 
+            $result = pg_execute($dbconn, "getCurrentUserDetails", [$_POST["id"]]);
+            */
+            
+            // Better hide option - set hidden = true in user table
             // need to grab current email address for delete notification before overwriting it
             $disableUser = pg_prepare($dbconn, "getCurrentUserDetails", "SELECT user_name,email FROM users WHERE id = $1"); 
             $result = pg_execute($dbconn, "getCurrentUserDetails", [$_POST["id"]]);
@@ -48,7 +55,7 @@ else {
             $email = $returnRow["email"];
             $username = $returnRow["user_name"];
             
-            $disableUser = pg_prepare($dbconn, "disableUser", "UPDATE users SET email = '', password = '' WHERE id = $1"); // They can't log in anymore, nor get a password reset request
+            $disableUser = pg_prepare($dbconn, "disableUser", "UPDATE users SET email = '', password = '', hidden = true WHERE id = $1"); // They can't log in anymore, nor get a password reset request
             $result = pg_execute($dbconn, "disableUser", [$_POST["id"]]);
             error_log (print_r ($returnRow, true));
         } else {
