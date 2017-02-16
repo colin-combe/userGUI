@@ -432,7 +432,9 @@ CLMSUI.buildUserAdmin = function () {
                 
                 var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
                 var updateUserColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["update"], []);
-                var unsortableColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["reset_Password", "delete"], []);
+                var unsortableColumns = !isSuperUser ? d3.range (0, tableSetting.columnOrder.length)
+                    : getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["reset_Password", "delete"], [])
+                ;
                 $("#"+baseId).dataTable ({
                     "paging": true,
                     "jQueryUI": true,

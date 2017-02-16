@@ -7,7 +7,7 @@ CLMSUI.loginForms = {
         // grab form input field values and put them in a json obj
         var json = prepostData || {};
         json.redirect = document.referrer;
-        console.log ("json", json);
+        //console.log ("json", json);
         zform.find("input[type='text'],input[type='email'],input[type='password']").each (function() { 
             var elem = $(this);
             json[elem.attr("name")] = elem.prop("value");
