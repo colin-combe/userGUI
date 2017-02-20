@@ -106,7 +106,13 @@ CLMSUI.buildUserAdmin = function () {
                     getMsg ("databaseConnectError"),
                     function (response) {
                         d3.select("#username").text(response.username);
-                        makeTable (response.data, response.superuser, response.userid, response.groupTypeData);
+                        makeTable (response.data, response.superuser, response.userid, response.groupTypeData,
+                            {
+                                delete: "delete",
+                                update: "update",
+                                reset_Password: "reset password"
+                            }
+                        );
                     }
                  )();
              });
@@ -201,6 +207,21 @@ CLMSUI.buildUserAdmin = function () {
         ;
     }
     
+    function enableDeleteButton (id, isSuperUser) {
+        var d3Sel = d3.select("#userTable tbody").selectAll("tr")
+            .filter(function(d) { return d.id === id; })
+            .selectAll("td")
+            .filter (function(d) { return d.key === "delete"; })
+        ;
+        var d3Data = d3Sel.data();
+        var enabled = (d3Data[0].value === false);
+
+        d3Sel
+            .selectAll("button,input")
+            .property("disabled", !enabled)
+        ;
+    }
+    
     function indicateValidValues (sel, isSuperUser) {
         sel = sel || d3.selectAll("table tbody").selectAll("td");
         sel.each (function(d) {
@@ -223,6 +244,7 @@ CLMSUI.buildUserAdmin = function () {
             indicateChangedValues (d3.select(this));    
         });
         enableUpdateButton (id, isSuperUser);
+        enableDeleteButton (id, isSuperUser);
     }
     
     function typeCapabilities (obj) {
@@ -281,7 +303,7 @@ CLMSUI.buildUserAdmin = function () {
     }
 
     
-     function makeTable (userData, isSuperUser, userId, groupTypeData) {
+     function makeTable (userData, isSuperUser, userId, groupTypeData, labelMap) {
         userData.forEach (function (userDatum) {
             userDatum.you = (userDatum.id === userId);    // mark which user is the current user
         });
@@ -330,7 +352,7 @@ CLMSUI.buildUserAdmin = function () {
             hrow.selectAll("th").data(tableSetting.columnOrder)
                 .enter()
                 .append("th")
-                .text (stripUnderscores)    // regex needed to replace multiple "_"
+                .text (function(d) { return labelMap[d] || stripUnderscores(d); })    // regex needed to replace multiple "_"
                 .filter (function(d) { return tableSetting.autoWidths.has(d); })
                 .classed ("varWidthCell", true)
                  .style ("width", vcWidth)
@@ -369,7 +391,7 @@ CLMSUI.buildUserAdmin = function () {
                         .attr ("type", elemType)
                         //.text (function(d) { return d.key+" User"; })
                         .property ("value", function(d) {
-                            return stripUnderscores (d.key) + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
+                            return (labelMap[d.key] || d.key) + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
                         })
                         .on ("click", function (d) {  
                             // pick data from all cells in row with the right id
@@ -415,6 +437,7 @@ CLMSUI.buildUserAdmin = function () {
             // For each row, existing or new, decide some states
             rowJoin.each (function (d) {
                 enableUpdateButton (d.id, isSuperUser);  // decide update button state
+                enableDeleteButton (d.id, isSuperUser); // decide delete button state
                 indicateChangedValues (d3.select(this).selectAll("td"));    // show if cell values have been altered from original
             }); 
             
@@ -547,7 +570,10 @@ CLMSUI.buildUserAdmin = function () {
                      "php/deleteUser.php", 
                      {id: deletingID}, 
                      getMsg ("deleteCatchallError"),
-                     function () { selfDelete ? window.location.replace ("./userReg.html") : removeRows ([deletingID], udata); }
+                     function () { 
+                         selfDelete ? window.location.replace ("./userReg.html") : 
+                         /*removeRows ([deletingID], udata)*/  signalContentChangeRow (dArray[0].id, isSuperUser); 
+                     }
                  );
 
                  CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg(selfDelete ? "clientDeleteYourself" : "clientDeleteUser"), getMsg("pleaseConfirm"), getMsg("proceedDelete"), getMsg("cancel"), deleteUserAjax);

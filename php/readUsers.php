@@ -17,7 +17,7 @@ else {
         
         if ($isSuperUser) {
              //pg_prepare ($dbconn, "allUserInfo", "SELECT id, user_name, see_all, can_add_search, super_user, email FROM users, user_in_group JOIN users.id = user_in_group.id");
-             pg_prepare ($dbconn, "allUserInfo", "SELECT users.id, user_name, email, array_agg(user_in_group.group_id) AS user_group FROM users JOIN user_in_group ON user_in_group.user_id = users.id GROUP BY users.id");
+             pg_prepare ($dbconn, "allUserInfo", "SELECT users.id, user_name, email, hidden AS delete, array_agg(user_in_group.group_id) AS user_group FROM users JOIN user_in_group ON user_in_group.user_id = users.id GROUP BY users.id");
              $result = pg_execute($dbconn, "allUserInfo", []);
         } else {
              //pg_prepare ($dbconn, "singleUserInfo", "SELECT id, user_name, email FROM users WHERE id = $1");
