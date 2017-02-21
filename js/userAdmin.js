@@ -111,7 +111,8 @@ CLMSUI.buildUserAdmin = function () {
                                 delete: "delete",
                                 update: "update",
                                 reset_Password: "reset password"
-                            }
+                            },
+                            d3.set(['user_group', 'email'])
                         );
                     }
                  )();
@@ -190,16 +191,22 @@ CLMSUI.buildUserAdmin = function () {
         return !reg || reg.test(d.value || "") || (isSuperUser && !d.value);    // superusers can enter empty values
     }
     
-    function enableUpdateButton (id, isSuperUser) {
+    function enableUpdateButton (id, qualifiers) {
+        // get correct row for id
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
-        var d3Data = d3Sel.data();
+        // filter the data to those fields to be tested for update
+        var d3Data = d3Sel.data().filter (function(d) {
+            return qualifiers.filterFields.has (d.key);
+        });
+        // are at least some of these fields different from their original values?
         var enabled = d3Data.some (function (d3Datum) {
             return !equals(d3Datum);
         });     
+        // and are these new values valid?
         enabled &= d3Data.every (function (d3Datum) { 
-            return isDatumValid (d3Datum, isSuperUser);
+            return isDatumValid (d3Datum, qualifiers.isSuperUser);
         });
-
+        // if so, set the update button to enabled
         d3Sel
             .filter(function(d) { return d.key === "update"; })
             .selectAll("button,input")
@@ -207,16 +214,37 @@ CLMSUI.buildUserAdmin = function () {
         ;
     }
     
-    function enableDeleteButton (id, isSuperUser) {
+    function enableDeleteButton (id, qualifiers) {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr")
             .filter(function(d) { return d.id === id; })
             .selectAll("td")
             .filter (function(d) { return d.key === "delete"; })
         ;
         var d3Data = d3Sel.data();
-        var enabled = (d3Data[0].value === false);
+        var enabled = (!truthy(d3Data[0].value));
 
         d3Sel
+            .selectAll("button,input")
+            .property("disabled", !enabled)
+        ;
+    }
+    
+    function enableResetPasswordButton (id, qualifiers) {
+        var d3Sel = d3.select("#userTable tbody").selectAll("tr")
+            .filter(function(d) { return d.id === id; })
+            .selectAll("td")
+        ;
+        // filter the data to those fields to be tested for update
+        var d3Data = d3Sel.data().filter (function(d) {
+            return qualifiers.filterFields.has (d.key);
+        });     
+        // are these new values valid?
+        var enabled = d3Data.every (function (d3Datum) { 
+            return isDatumValid (d3Datum, false);
+        });
+
+        d3Sel
+            .filter (function(d) { return d.key === "reset_Password"; })
             .selectAll("button,input")
             .property("disabled", !enabled)
         ;
@@ -230,21 +258,22 @@ CLMSUI.buildUserAdmin = function () {
         });
     }
     
-    function signalContentChange (d, isSuperUser) {
+    function signalContentChange (d, qualifiers) {
         d.value = d3.select(this).text();
         indicateValidValues (d3.select(this));
         indicateChangedValues (d3SelectParent(this));   // up to td not span element
-        enableUpdateButton (d.id, isSuperUser);
+        enableUpdateButton (d.id, qualifiers);
     }
     
     // Used when entire row content check needs done i.e. after database update
-    function signalContentChangeRow (id, isSuperUser) {
+    function signalContentChangeRow (id, qualifiers) {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
         d3Sel.each (function(d) {
             indicateChangedValues (d3.select(this));    
         });
-        enableUpdateButton (id, isSuperUser);
-        enableDeleteButton (id, isSuperUser);
+        enableUpdateButton (id, qualifiers);
+        enableDeleteButton (id, qualifiers);
+        enableResetPasswordButton (id, qualifiers);
     }
     
     function typeCapabilities (obj) {
@@ -268,7 +297,7 @@ CLMSUI.buildUserAdmin = function () {
         return d.replace (/_/g, " ");
     }
     
-    function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList, isSuperUser) {
+    function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList, qualifiers) {
         var selectSelect = d3.select(tableID).selectAll("select");
             
         $(selectSelect).each (function() {
@@ -284,7 +313,7 @@ CLMSUI.buildUserAdmin = function () {
                     d.value = [obj.value];  // replace the data value with the new value
                     
                     indicateChangedValues (d3.select(parent));   // up to td not input element
-                    enableUpdateButton (d.id, isSuperUser);
+                    enableUpdateButton (d.id, qualifiers);
                 },
             });
         });
@@ -303,13 +332,14 @@ CLMSUI.buildUserAdmin = function () {
     }
 
     
-     function makeTable (userData, isSuperUser, userId, groupTypeData, labelMap) {
+     function makeTable (userData, isSuperUser, userId, groupTypeData, labelMap, testTheseFieldsForUpdate) {
         userData.forEach (function (userDatum) {
             userDatum.you = (userDatum.id === userId);    // mark which user is the current user
         });
+        var qualifiers = {isSuperUser: isSuperUser, filterFields: testTheseFieldsForUpdate};
      
         var types = {
-            id: "text", you: "text", user_name: "text", /*see_all: "checkbox", can_add_search: "checkbox", super_user: "checkbox",*/ user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
+            id: "text", you: "text", user_name: "text", user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
         };
          
         var tableSettings = {
@@ -377,9 +407,9 @@ CLMSUI.buildUserAdmin = function () {
                 if (elemType === "text") {
                     var span = d3Elem.append("span")
                         .text(function(d) { return d.value || ""; })
-                        .on ("input", function(d) { signalContentChange.call (this, d, isSuperUser); })
-                        .on ("keyup", function(d) { signalContentChange.call (this, d, isSuperUser); })
-                        .on ("paste", function(d) { signalContentChange.call (this, d, isSuperUser); })
+                        .on ("input", function(d) { signalContentChange.call (this, d, qualifiers); })
+                        .on ("keyup", function(d) { signalContentChange.call (this, d, qualifiers); })
+                        .on ("paste", function(d) { signalContentChange.call (this, d, qualifiers); })
                         .attr ("contenteditable", tableSetting.editable.has(d.key))
                     ;
                     if (tableSetting.columnIcons[d.key]) {
@@ -391,7 +421,7 @@ CLMSUI.buildUserAdmin = function () {
                         .attr ("type", elemType)
                         //.text (function(d) { return d.key+" User"; })
                         .property ("value", function(d) {
-                            return (labelMap[d.key] || d.key) + (d.key === "update" || d.key === "delete" ? (userId === d.id ? " Me" : " User") : ""); 
+                            return (labelMap[d.key] || d.key) + (d.key !== "reset_Password" ? (userId === d.id ? " Me" : " User") : ""); 
                         })
                         .on ("click", function (d) {  
                             // pick data from all cells in row with the right id
@@ -408,7 +438,7 @@ CLMSUI.buildUserAdmin = function () {
                         .on ("click", function (d) {
                             d.value = !!!d.value;
                             indicateChangedValues (d3SelectParent(this));   // up to td not input element
-                            enableUpdateButton (d.id, isSuperUser);
+                            enableUpdateButton (d.id, qualifiers);
                         })
                     ;
                 }
@@ -436,8 +466,9 @@ CLMSUI.buildUserAdmin = function () {
                   
             // For each row, existing or new, decide some states
             rowJoin.each (function (d) {
-                enableUpdateButton (d.id, isSuperUser);  // decide update button state
-                enableDeleteButton (d.id, isSuperUser); // decide delete button state
+                enableUpdateButton (d.id, qualifiers);  // decide update button state
+                enableDeleteButton (d.id, qualifiers); // decide delete button state
+                enableResetPasswordButton (d.id, qualifiers); // decide delete button state
                 indicateChangedValues (d3.select(this).selectAll("td"));    // show if cell values have been altered from original
             }); 
             
@@ -451,7 +482,7 @@ CLMSUI.buildUserAdmin = function () {
             if (firstTime) { 
                 // Run initial DataTable setup and set various column properties
                 var selectColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["select"]);
-                makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists, isSuperUser);
+                makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists, qualifiers);
                 
                 var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
                 var updateUserColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["update"], []);
@@ -483,7 +514,7 @@ CLMSUI.buildUserAdmin = function () {
                 rowJoin.exit().remove();
             }
             if (!isSuperUser) {
-                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["id", "see_all", "can_add_search", "super_user", "you"], []);
+                var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["id", "super_user", "you"], []);
                 // best to hide columns user has no privilege to change - http://stackoverflow.com/a/372503/368214
                 $("#"+baseId).DataTable().columns(superuserOnlyColumns).visible(false);
                 
@@ -550,7 +581,7 @@ CLMSUI.buildUserAdmin = function () {
                             removeRows (otherUserIDs, udata);
                             */
                         } else {
-                            signalContentChangeRow (dArray[0].id, isSuperUser);
+                            signalContentChangeRow (dArray[0].id, qualifiers);
                              //makeIndTable (tableSettings.users);
                         }
                      }
@@ -571,8 +602,11 @@ CLMSUI.buildUserAdmin = function () {
                      {id: deletingID}, 
                      getMsg ("deleteCatchallError"),
                      function () { 
-                         selfDelete ? window.location.replace ("./userReg.html") : 
-                         /*removeRows ([deletingID], udata)*/  signalContentChangeRow (dArray[0].id, isSuperUser); 
+                        var deleteDatum = dArray.filter (function(d) { return d.key === "delete"; })[0];
+                        deleteDatum.value = true;
+                        deleteDatum.originalValue = true;
+                        selfDelete ? window.location.replace ("./php/logout.php") : signalContentChangeRow (deletingID, qualifiers);
+                        // signalContentChange was previously removeRows ([deletingID], udata)
                      }
                  );
 

@@ -25,7 +25,7 @@ try {
                 $hash = password_hash ($pword, PASSWORD_BCRYPT);
                 
                 pg_query("BEGIN") or die("Could not start transaction\n");
-                pg_prepare ($dbconn, "setNewPassword", "UPDATE users SET password = $2, ptoken = '', ptoken_timestamp = NULL WHERE id = $1");
+                pg_prepare ($dbconn, "setNewPassword", "UPDATE users SET password = $2, ptoken = '', ptoken_timestamp = NULL, hidden = false WHERE id = $1");
                 $result = pg_execute($dbconn, "setNewPassword", [$id, $hash]);
                 pg_query("COMMIT");
                 
