@@ -268,9 +268,10 @@ CLMSUI.buildUserAdmin = function () {
     // Used when entire row content check needs done i.e. after database update
     function signalContentChangeRow (id, qualifiers) {
         var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
-        d3Sel.each (function(d) {
-            indicateChangedValues (d3.select(this));    
-        });
+        indicateChangedValues (d3Sel);
+        //d3Sel.each (function(d) {
+        //    indicateChangedValues (d3.select(this));    
+        //});
         enableUpdateButton (id, qualifiers);
         enableDeleteButton (id, qualifiers);
         enableResetPasswordButton (id, qualifiers);
