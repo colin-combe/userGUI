@@ -35,7 +35,7 @@
       <link rel="stylesheet" href="css/login.css" />
       
       <script type="text/javascript" src="./vendor/js/zepto.js"></script>
-        <script type="text/javascript" src="./vendor/js/spin.js"></script>
+      <script type="text/javascript" src="./vendor/js/spin.js"></script>
       <script src="https://www.google.com/recaptcha/api.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
@@ -80,7 +80,7 @@
             <span class="error2">&lt; Please check the captcha form</span>
             <br/>
             
-            <input name="Submit" value="Get Email with Change password link" type="submit" class="btn btn-1a"/>
+            <input name="Submit" value="Get Email with reset password link" type="submit" class="btn btn-1a"/>
         </form>
         
         <div id="spinBox"></div>
@@ -101,9 +101,10 @@
             $(document).ready(function(e) {
                 $.getJSON("./json/config.json", function (config) {
                      $.getJSON("./json/msgs.json", function (msgs) {
-                        function getMsg (key) {
-                            return msgs["en"][key];
-                        }
+                        CLMSUI.loginForms.msgs = msgs;
+                        CLMSUI.loginForms.makeFooter();
+                        CLMSUI.loginForms.finaliseRecaptcha (config.googleRecaptchaPublicKey);
+                        var spinner = CLMSUI.loginForms.getSpinner();
                          
                         function checkConnection (url) {
                             $.ajax({
@@ -113,34 +114,16 @@
                                 error: function (jqXHR, textStatus) {
                                     //alert("Request failed: " + textStatus ); 
                                 },
-                                success: function() {
+                                success: function () {
                                     $(".newUserSection").css("display", "block");   
                                 }
                             });       
                          }    
                          checkConnection("./userReg.html"); // show new user section if reg page is reachable
 
-                        var ximail = getMsg ("xiAdminEmail");
-                        $("#xiemail")
-                            .attr("href", "mailto:"+ximail)
-                            .text(ximail)
-                        ;
-
-                        $("#recaptchaWidget")
-                            .attr("class", "g-recaptcha")
-                            .attr("data-sitekey", config.googleRecaptchaPublicKey)
-                        ;
-
-                         var nameValidationMsg = getMsg("clientNameValidationInfo");
+                         var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
                         $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
                         $("#login-name-errorMsg").text("< "+nameValidationMsg);
-                         
-                        var spinner = new Spinner ({
-                            lines: 13, // The number of lines to draw
-                            length: 5, // The length of each line
-                            width: 2, // The line thickness
-                            radius: 7, // The radius of the inner circle
-                        });
 
                         // divert form submit action to this javascript function
                         $("#login_form").submit (function(e) {

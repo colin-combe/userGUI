@@ -2,6 +2,8 @@ var CLMSUI = CLMSUI || {};
 
 CLMSUI.loginForms = {
     
+    msgs: [],
+    
     ajaxPost: function (formElement, prepostData, doneFunc) {
         var zform = $(formElement);
         // grab form input field values and put them in a json obj
@@ -50,5 +52,35 @@ CLMSUI.loginForms = {
                 }
             }
         });
-    }
+    },
+    
+    getMsg: function (key) {
+        var language = window.navigator.userLanguage || window.navigator.language;
+        language = language.split("-")[0];
+        return (CLMSUI.loginForms.msgs[language] || CLMSUI.loginForms.msgs["en"])[key];
+    },
+    
+    makeFooter: function () {
+        var ximail = CLMSUI.loginForms.getMsg ("xiAdminEmail");
+        $("#xiemail")
+            .attr("href", "mailto:"+ximail)
+            .text(ximail)
+        ;
+    },
+    
+    finaliseRecaptcha: function (publicKey) {
+        $("#recaptchaWidget")
+            .attr("class", "g-recaptcha")
+            .attr("data-sitekey", publicKey)
+        ;
+    },
+    
+    getSpinner: function () {
+        return new Spinner ({
+            lines: 13, // The number of lines to draw
+            length: 5, // The length of each line
+            width: 2, // The line thickness
+            radius: 7, // The radius of the inner circle
+        });
+    },
 };

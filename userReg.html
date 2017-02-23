@@ -64,40 +64,24 @@
                 $(document).ready(function(e) {
                     $.getJSON("./json/config.json", function (config) {
                         $.getJSON("./json/msgs.json", function (msgs) {
-                            function getMsg (key) {
-                                return msgs["en"][key];
-                            }
+                            CLMSUI.loginForms.msgs = msgs;
+                            CLMSUI.loginForms.makeFooter();
+                            CLMSUI.loginForms.finaliseRecaptcha (config.googleRecaptchaPublicKey);
+                            var spinner = CLMSUI.loginForms.getSpinner();
                             
-                            var ximail = getMsg ("xiAdminEmail");
-                            $("#xiemail")
-                                .attr("href", "mailto:"+ximail)
-                                .text(ximail)
-                            ;
-                            
-                            $("#recaptchaWidget")
-                                .attr("class", "g-recaptcha")
-                                .attr("data-sitekey", config.googleRecaptchaPublicKey)
-                            ;
                             var splitRegex = config.emailRegex.split("/");
                             $("#email").attr("pattern", splitRegex[1]);
                             
-                            var nameValidationMsg = getMsg("clientNameValidationInfo");
+                            var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
                             $("#username").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
                             $("#username-errorMsg").text("< "+nameValidationMsg);
                             
-                            var passwordValidationMsg = getMsg("clientPasswordValidationInfo");
+                            var passwordValidationMsg = CLMSUI.loginForms.getMsg("clientPasswordValidationInfo");
                             $("#pass").attr("oninvalid", "this.setCustomValidity('"+passwordValidationMsg+"')");
                             $("#pass-errorMsg").text("< "+passwordValidationMsg);
                             
-                            var emailValidationMsg = getMsg("clientEmailValidationInfo");
+                            var emailValidationMsg = CLMSUI.loginForms.getMsg("clientEmailValidationInfo");
                             $("#email-errorMsg").text("< "+emailValidationMsg);
-
-                            var spinner = new Spinner ({
-                                lines: 13, // The number of lines to draw
-                                length: 5, // The length of each line
-                                width: 2, // The line thickness
-                                radius: 7, // The radius of the inner circle
-                            });
 
                             // Example 3:
                             // - When checkbox changes, toggle password
