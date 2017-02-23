@@ -118,7 +118,7 @@ footer > p:last-child::before {
 }
 
 hr.wideDivider {
-    margin: 2em 0em;
+    margin: 1em 0em;
 }
 
 #msg {
@@ -133,4 +133,17 @@ hr.wideDivider {
     width: 2em;
     height: 4em;
     position: relative;
+}
+
+.newUserSection {
+    display: none;
+}
+
+.newUserSection h3 {
+    display: inline-block;
+    margin-right: 1em;
+}
+
+.newUserSection form {
+    display: inline-block;
 }

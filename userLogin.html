@@ -64,7 +64,7 @@
               <span class="error2"></span>
             </div>
               
-            <input name="Submit" value="Login" type="submit" class="btn btn-1a"/>
+            <input name="Submit" value="Login To Xi" type="submit" class="btn btn-1a"/>
           </form>
         
         <hr class="wideDivider">
@@ -80,11 +80,22 @@
             <span class="error2">&lt; Please check the captcha form</span>
             <br/>
             
-            <input name="Submit" value="Send Email" type="submit" class="btn btn-1a"/>
+            <input name="Submit" value="Get Email with Change password link" type="submit" class="btn btn-1a"/>
         </form>
         
         <div id="spinBox"></div>
         <p id="msg"></p>
+        
+        <div class="newUserSection">
+            <hr class="wideDivider">
+            <h3>New User?</h3>
+            <form id="new_user_form" name="new_user_form" action="./userReg.html">
+                <input name="Submit" value="Create New Account" type="submit" class="btn btn-1a"/>
+            </form>
+            <!-- <P><A href="./userReg.html">Click to Create Xi Account</A></P> -->
+        </div>
+        
+        <hr class="wideDivider">
 
         <script type="text/javascript"> 
             $(document).ready(function(e) {
@@ -94,6 +105,21 @@
                             return msgs["en"][key];
                         }
                          
+                        function checkConnection (url) {
+                            $.ajax({
+                                url: url,
+                                cache: false,
+                                timeout:1000,
+                                error: function (jqXHR, textStatus) {
+                                    //alert("Request failed: " + textStatus ); 
+                                },
+                                success: function() {
+                                    $(".newUserSection").css("display", "block");   
+                                }
+                            });       
+                         }    
+                         checkConnection("./userReg.html"); // show new user section if reg page is reachable
+
                         var ximail = getMsg ("xiAdminEmail");
                         $("#xiemail")
                             .attr("href", "mailto:"+ximail)
