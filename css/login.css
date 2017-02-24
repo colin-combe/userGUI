@@ -109,11 +109,11 @@ header {
     display: inline-block;
 }
 
-footer > p:first-child::before {
+footer > p:first-of-type::before {
     content: "Xi Administrator: ";
 }
 
-footer > p:last-child::before {
+footer > p:last-of-type::before {
     content: "© Rappsilber Laboratory, 2017";
 }
 
@@ -139,11 +139,11 @@ hr.wideDivider {
     display: none;
 }
 
-.newUserSection h3 {
+h3 {
     display: inline-block;
     margin-right: 1em;
 }
 
-.newUserSection form {
+.newUserSection form, #reset_password_form {
     display: inline-block;
 }

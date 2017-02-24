@@ -35,15 +35,11 @@
       <link rel="stylesheet" href="css/login.css" />
       
       <script type="text/javascript" src="./vendor/js/zepto.js"></script>
-      <script type="text/javascript" src="./vendor/js/spin.js"></script>
-      <script src="https://www.google.com/recaptcha/api.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
     
   <body>
-        
-      <div class="centreDiv">
-          <div class="inner">
+
 	<header>
         <h1>Xi User Login</h1>
 	</header>
@@ -69,22 +65,9 @@
         
         <hr class="wideDivider">
         <h3>Forgotten Password?</h3>
-        <form id="password_retrieve_form" name="password_retrieve_form" method="post" action="./php/passwordRetrieve.php" class="login-form">
-            <div class="control-group">
-              <label for="login-pass">Username / Email</label>
-              <input type="text" value="" placeholder="Username or email" id="password-retrieve" name="password-retrieve" pattern=".{4,}" required/>
-              <span class="error2"></span>
-            </div>
-            
-            <div id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
-            <span class="error2">&lt; Please check the captcha form</span>
-            <br/>
-            
-            <input name="Submit" value="Get Email with reset password link" type="submit" class="btn btn-1a"/>
+        <form id="reset_password_form" name="reset_password_form" action="./userRequestPassword.html">
+            <input name="Submit" value="Click Here" type="submit" class="btn btn-1a"/>
         </form>
-        
-        <div id="spinBox"></div>
-        <p id="msg"></p>
         
         <div class="newUserSection">
             <hr class="wideDivider">
@@ -92,10 +75,7 @@
             <form id="new_user_form" name="new_user_form" action="./userReg.html">
                 <input name="Submit" value="Create New Account" type="submit" class="btn btn-1a"/>
             </form>
-            <!-- <P><A href="./userReg.html">Click to Create Xi Account</A></P> -->
         </div>
-        
-        <hr class="wideDivider">
 
         <script type="text/javascript"> 
             $(document).ready(function(e) {
@@ -103,8 +83,6 @@
                      $.getJSON("./json/msgs.json", function (msgs) {
                         CLMSUI.loginForms.msgs = msgs;
                         CLMSUI.loginForms.makeFooter();
-                        CLMSUI.loginForms.finaliseRecaptcha (config.googleRecaptchaPublicKey);
-                        var spinner = CLMSUI.loginForms.getSpinner();
                          
                         function checkConnection (url) {
                             $.ajax({
@@ -131,26 +109,11 @@
                             CLMSUI.loginForms.ajaxPost (e.target);
                             e.preventDefault();
                         });
-
-                        $("#password_retrieve_form").submit (function(e) {
-                            $(".error2").css("display", "none");
-                            spinner.spin (document.getElementById ("spinBox"));
-                            CLMSUI.loginForms.ajaxPost (e.target, {"g-recaptcha-response": grecaptcha.getResponse()}, function() { spinner.stop(); });
-                            e.preventDefault();
-                        });
                      });
                 });
             });
         </script>
     </div>
-
-    <footer>
-        <p><a href="" id="xiemail"></a></p>
-        <p></p>
-    </footer>
-          
-          </div>
-      </div>
 
   </body>
 </html>

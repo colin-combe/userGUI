@@ -61,6 +61,7 @@ CLMSUI.loginForms = {
     },
     
     makeFooter: function () {
+        $("body").append("<footer><hr class='wideDivider'><p><a href='' id='xiemail'></a></p><p></p></footer>");
         var ximail = CLMSUI.loginForms.getMsg ("xiAdminEmail");
         $("#xiemail")
             .attr("href", "mailto:"+ximail)
