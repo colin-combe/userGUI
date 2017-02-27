@@ -32,7 +32,7 @@ try {
                 echo (json_encode(array ("status"=>"success", "msg"=> getTextString("passwordResetSuccess"))));
             }
             else {
-                echo (json_encode(array ("status"=>"success", "msg"=> getTextString("tokenExpiredError"))));
+                echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("tokenExpiredError"))));
             }
         } else {
             echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("tokenMismatchError"))));

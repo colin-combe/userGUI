@@ -38,6 +38,7 @@ CLMSUI.loginForms = {
                     } else if (data.msg) {
                         $("#msg").text(data.msg);
                     }
+                    $(".revealOnFailure").css("display", "block");
                     if (data.revalidate) {
                          grecaptcha.reset();    // captcha needs revalidated on this failure
                     }
