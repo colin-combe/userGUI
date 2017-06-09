@@ -7,7 +7,7 @@ $date = date("d-M-Y H:i:s");
 try {
     pg_query("BEGIN") or die("Could not start transaction\n");
 
-    error_log (print_r ($_POST, true));
+    //error_log (print_r ($_POST, true));
     // Define $myusername and $mypass
     $myusername=$_POST['login-name'];
     $mypass=$_POST['login-pass'];
@@ -37,7 +37,7 @@ try {
         $_SESSION['user_id'] = $user_id;
         //$redirectTo = empty($_POST["redirect"]) ? "../history/history.html" : $_POST["redirect"];
         $redirectTo = "../history/history.html";
-        error_log (print_r ($redirectTo, true));
+        //error_log (print_r ($redirectTo, true));
         echo (json_encode(array ("status"=>"success", "redirect"=> $redirectTo)));
     } else {
         echo (json_encode(array ("status"=>"fail", "msg"=>"< Incorrect Password / Username combination", "field"=>"login-name")));

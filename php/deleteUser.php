@@ -57,7 +57,7 @@ else {
             
             $disableUser = pg_prepare($dbconn, "disableUser", "UPDATE users SET email = '', password = '', ptoken = '', hidden = true WHERE id = $1"); // They can't log in anymore, nor get a password reset request
             $result = pg_execute($dbconn, "disableUser", [$_POST["id"]]);
-            error_log (print_r ($returnRow, true));
+            //error_log (print_r ($returnRow, true));
         } else {
             throw new Exception (getTextString("deletePermissionError"));
         }

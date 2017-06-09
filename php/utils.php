@@ -45,7 +45,7 @@
             WHERE users.id = $1");
             $result = pg_execute ($dbconn, "user_rights2", [$userID]);
             $row = pg_fetch_assoc ($result);
-            error_log (print_r ($row, true));
+            //error_log (print_r ($row, true));
             
             $maxSearchCount = (int)$row["max_search_count"];
             $maxSearchLifetime = (int)$row["max_search_lifetime"];
@@ -125,7 +125,7 @@
         if (isset($_POST[$varName])){
             $a = $_POST[$varName];
         }
-        error_log (print_r ($a, true));
+        //error_log (print_r ($a, true));
         if (!$a || ($isEmail && !filter_var ($a, FILTER_VALIDATE_EMAIL)) || !filter_var ($a, FILTER_VALIDATE_REGEXP, array ('options' => array ('regexp' => $regexp)))) {
             if (isset($msg)) {
                 echo (json_encode(array ("status"=>"fail", "msg"=> $msg, "error"=> $msg)));
@@ -143,7 +143,7 @@
         $ip = $_SERVER['REMOTE_ADDR'];
         $response=file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secretRecaptchaKey."&response=".$captcha."&remoteip=".$ip);
         $responseKeys = json_decode($response,true);
-        error_log (print_r ($responseKeys, true));
+        //error_log (print_r ($responseKeys, true));
         if (intval($responseKeys["success"]) !== 1) {
             echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("captchaError"), "revalidate"=> true)));
             exit;
@@ -175,29 +175,29 @@
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
         
-        error_log (print_r ($email, true));
+        //error_log (print_r ($email, true));
         
         if (strlen($email) > 2) {
             if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
 
                 if ($count == 1) {
-                    error_log (print_r ($count, true));
+                    //error_log (print_r ($count, true));
                     $mail = makePHPMailerObj ($mailInfo, $email, $userName, getTextString("resetPasswordEmailHeader"));
                     $ptoken = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
                     pg_prepare ($dbconn, "setToken", "UPDATE users SET ptoken = $2, ptoken_timestamp = now() WHERE id = $1");
                     $result = pg_execute ($dbconn, "setToken", [$id, $ptoken]);
-                    error_log (print_r (pg_fetch_assoc ($result), true));
+                    //error_log (print_r (pg_fetch_assoc ($result), true));
 
                     if ($result) {
                         $url = $urlRoot."userGUI/passwordReset.html?ptoken=".$ptoken;
                         $mail->MsgHTML (getTextString ("resetPasswordEmailBody", [$url]));
-                        error_log (print_r ($ptoken, true));
-                        error_log (print_r ($id, true));
+                        //error_log (print_r ($ptoken, true));
+                        //error_log (print_r ($id, true));
 
                         pg_query("COMMIT");
 
                         if(!$mail->Send()) {
-                            error_log (print_r ("failsend", true));
+                            //error_log (print_r ("failsend", true));
                         }   
                     } else {
                         throw new Exception (getTextString("genDatabaseError"));
@@ -215,7 +215,7 @@
 
     function getTextString ($key, $vars = NULL) {
         if (!isset($_strings)) {
-            error_log ("init strings");
+            //error_log ("init strings");
             $_strings = json_decode (file_get_contents ("../json/msgs.json"), true);
         }
         $lang = "en";
@@ -223,7 +223,7 @@
         if ($vars) {
             $str = preg_replace(array('/\$1/', '/\$2/', '/\$3/', '/\$4/', '/\$5/', '/\$6/', '/\$7/', '/\$8/', '/\$9/'), $vars, $str);
         }
-        error_log (print_r ($str, true));
+        //error_log (print_r ($str, true));
         return $str;
     }
 ?>

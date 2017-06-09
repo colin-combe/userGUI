@@ -3,7 +3,7 @@ include ('../../connectionString.php');
 include ('utils.php');
 
 try {
-    error_log (print_r ($_POST, true));
+    //error_log (print_r ($_POST, true));
     
     $pid = validatePostVar ("password-retrieve", '/.{4,}/', false, null, "Needs to be at least 4 characters");
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");

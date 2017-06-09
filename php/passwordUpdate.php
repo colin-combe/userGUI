@@ -42,7 +42,7 @@ try {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
          $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("passwordResetCatchall");
-        error_log (print_r ($msg, true));
+        //error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
     }
 
@@ -52,7 +52,7 @@ try {
 } catch (Exception $e) {
      $date = date("d-M-Y H:i:s");
      $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("databaseConnectError");
-     error_log (print_r ($msg, true));
+     //error_log (print_r ($msg, true));
      echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date)));
 }
 

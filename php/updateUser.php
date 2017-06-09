@@ -12,7 +12,7 @@ else {
     try {
         pg_query("BEGIN") or die("Could not start transaction\n");
         
-        error_log (print_r ($_POST, true));
+        //error_log (print_r ($_POST, true));
         
         $isSuperUser = isSuperUser ($dbconn, $_SESSION['user_id']);
         
