@@ -53,6 +53,16 @@
         "proceedUpdate": "Proceed with Update",
         "cancel": "Cancel this Action",
         
+        "canAddSearches": "Can add up to $1 searches",
+        "cannotAddSearches": "Cannot add new searches",
+        "ownSearchesOnly": "Can only see own searches",
+        "canSeeAllSearches": "Can see ALL searches",
+        "canSeePublicSearches": "Can see other users' public searches",
+        "searchesPerDay": "$1 per day",
+        "superuser": "Superuser",
+        
+        "superuserRequired": "Superuser status required to change this",
+        
         "xiAdminEmail": "xiadmin@ed.ac.uk"
     }
 }

@@ -91,11 +91,19 @@ CLMSUI.buildUserAdmin = function () {
      }
     
     
+     // msg is "blah blah $1 of $2" etc
+     // data is ["textfor$1", "textfor$2"] etc
+     function template (msg, data) {
+         return msg.replace(/(?:\$)([0-9])/g, function (rawMatch, match, token) { return data[match-1]; });
+     }
+    
+    
      // Upon document being ready run this function to load in data
      $(document).ready (function () {      
          $.getJSON("./json/config.json", function (config) {
-             $.getJSON("./json/msgs.json", function (msgs) {
+             $.getJSON("./json/msgs.json", {_: new Date().getTime()} /* stops caching */, function (msgs) {
                  CLMSUI.msgs = msgs;
+                 console.log ("MSGS", msgs);
                 // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
                  var emailRegexParts = splitRegex (config.emailRegex);
                 CLMSUI.regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (emailRegexParts[1], emailRegexParts[2]), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};
@@ -276,17 +284,18 @@ CLMSUI.buildUserAdmin = function () {
     
     function typeCapabilities (obj) {
         var desc = [obj.name.toUpperCase().replace("_", " ")];
-        if (truthy (obj.super_user)) { desc.push("Superuser"); }
+        if (truthy (obj.super_user)) { desc.push (getMsg ("superuser")); }
         if (truthy (obj.can_add_search)) { 
-            desc.push("Can add"+(obj.max_search_count ? " up to "+obj.max_search_count : "")+" searches");
+            desc.push (template (getMsg ("canAddSearches"), [d3.format(",")(obj.max_search_count)]));
         } else if (obj.can_add_search != undefined) { 
-            desc.push ("Cannot add new searches");
+            console.log (CLMSUI.msgs);
+            desc.push (getMsg ("cannotAddSearches"));
         }
-        if (truthy (obj.can_add_search) && obj.max_searches_per_day) { desc.push(obj.max_searches_per_day + " per day"); }
+        if (truthy (obj.can_add_search) && obj.max_searches_per_day) { desc.push (template (getMsg ("searchesPerDay"), [obj.max_searches_per_day])); }
         if (truthy (obj.see_all)) { 
-            desc.push (truthy (obj.super_user) ? "Can see ALL searches" : "Can see other users public searches");
+            desc.push (getMsg (truthy (obj.super_user) ? "canSeeAllSearches" : "canSeePublicSearches"));
         } else if (obj.see_all != undefined) {
-            desc.push ("Can only see own searches");
+            desc.push (getMsg ("ownSearchesOnly"));
         }
         return desc.join(", ");
     }
@@ -444,7 +453,7 @@ CLMSUI.buildUserAdmin = function () {
                     var readOnly = !isSuperUser && tableSetting.superUserEditable.has(d.key);
                     d3Elem.append("select")
                         .property ("disabled", readOnly)
-                        .attr ("title", readOnly ? "Superuser role needed to change this" : "")
+                        .attr ("title", readOnly ? getMsg ("superuserRequired") : "")
                         .selectAll("option")
                             .data(tableSetting.optionLists[d.key], function(d) { return d.id; })
                             .enter()
