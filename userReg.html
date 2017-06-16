@@ -10,10 +10,9 @@
         <link rel="stylesheet" href="../xi3/css/style.css" />
         <link rel="stylesheet" href="css/login.css" />
 
-        <script src="vendor/js/jquery-2.2.0.js"></script>
+        <script src="vendor/js/jquery-2.2.4.js"></script>
         <script src="vendor/js/hideShowPassword.js"></script>
         <script src="vendor/js/spin.js"></script>
-         <script src="https://www.google.com/recaptcha/api.js"></script>
          <script src="./js/forms.js"></script>
      </head>
     
@@ -61,7 +60,8 @@
             <div id="msg"></div>
 
             <script type="text/javascript"> 
-                $(document).ready(function(e) {
+                //$(document).ready(function(e) {
+                var onloadCallback = function () {
                     $.getJSON("./json/config.json", function (config) {
                         $.getJSON("./json/msgs.json", function (msgs) {
                             CLMSUI.loginForms.msgs = msgs;
@@ -100,8 +100,11 @@
                             });
                         });
                     });
-                });
+                }
+                //});
             </script>
+            
+            <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
         </div>
 
     </body>

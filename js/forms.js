@@ -75,6 +75,7 @@ CLMSUI.loginForms = {
             .attr("class", "g-recaptcha")
             .attr("data-sitekey", publicKey)
         ;
+         grecaptcha.render('recaptchaWidget', {'sitekey': publicKey});
     },
     
     getSpinner: function () {
