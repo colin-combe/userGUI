@@ -51,6 +51,13 @@ CLMSUI.buildUserAdmin = function () {
                 return $('input', td).prop('disabled') ? '1' : '0';
             });
         };
+        
+        // this accommodates carat to caret spelling change in JQuery-UI 1.12.4
+        var JUIClassEntries = d3.entries($.fn.dataTable.ext.oJUIClasses);
+        JUIClassEntries.forEach (function (JUIClassEntry) {
+            $.fn.dataTable.ext.oJUIClasses[JUIClassEntry.key] = JUIClassEntry.value.replace ("-carat-", "-caret-");
+        });
+        
     }
     canDoImmediately();
     
