@@ -3,6 +3,10 @@
     line-height: 0.8em;
 }
 
+body {
+    height: auto;
+}
+
 #topLevel {
     position: relative;
 }

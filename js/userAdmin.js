@@ -288,7 +288,7 @@ CLMSUI.buildUserAdmin = function () {
         if (truthy (obj.can_add_search)) { 
             desc.push (template (getMsg ("canAddSearches"), [d3.format(",")(obj.max_search_count)]));
         } else if (obj.can_add_search != undefined) { 
-            console.log (CLMSUI.msgs);
+            //console.log (CLMSUI.msgs);
             desc.push (getMsg ("cannotAddSearches"));
         }
         if (truthy (obj.can_add_search) && obj.max_searches_per_day) { desc.push (template (getMsg ("searchesPerDay"), [obj.max_searches_per_day])); }
