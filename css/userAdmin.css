@@ -20,21 +20,6 @@
 .col-11 {width: 91.66%;}
 .col-12 {width: 100%;}
 
-/*
-[class*="col-"] {
-    float: left;
-    padding: 0.3em 0.5em;
-    padding-top: 0.2em;
-}
-
-.row {}
-
-.row:after {
-    content: "";
-    clear: both;
-    display: block;
-}
-*/
 
 [class*="col-"] {
     display: table-cell;

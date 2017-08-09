@@ -1,39 +1,9 @@
-/*
-body {
-    padding: 0 2em;
-    margin: 0;
-    font-size: 1em;
-    box-sizing: border-box;   
-    height: 100%;
-    background: #ddd;
-}
-
-div.centreDiv {
-    text-align: center;
-}
-div.inner {
-    margin-top: 2em;
-    padding: 1em;
-    background: white;
-    display: inline-block;
-    text-align: left;
-    line-height: 1em;
-    height: 100%;
-    border-radius: 2em;
-}
-*/
-
-
 body {
     height: auto;
     padding: 1em 2em;
     font-size: 1em;
 }
 
-div.centreDiv {
-}
-div.inner {
-}
 
 header {
     border-top: 8px solid #aaa;
