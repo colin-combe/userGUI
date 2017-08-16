@@ -79,38 +79,41 @@
 
         <script type="text/javascript"> 
             $(document).ready(function(e) {
-                $.getJSON("./json/config.json", function (config) {
-                     $.getJSON("./json/msgs.json", function (msgs) {
-                        CLMSUI.loginForms.msgs = msgs;
-                        CLMSUI.loginForms.makeFooter();
-                         
-                        function checkConnection (url) {
-                            $.ajax({
-                                url: url,
-                                cache: false,
-                                timeout:1000,
-                                error: function (jqXHR, textStatus) {
-                                    //alert("Request failed: " + textStatus ); 
-                                },
-                                success: function () {
-                                    $(".newUserSection").css("display", "block");   
-                                }
-                            });       
-                         }    
-                         checkConnection("./userReg.html"); // show new user section if reg page is reachable
+                $.when (
+                    $.getJSON("./json/config.json"),
+                    $.getJSON("./json/msgs.json")
+                ).done (function (configxhr, msgsxhr) {
+                    var msgs = msgsxhr[0];
+                    var config = configxhr[0];
+                    CLMSUI.loginForms.msgs = msgs;
+                    CLMSUI.loginForms.makeFooter();
 
-                         var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
-                        $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
-                        $("#login-name-errorMsg").text("< "+nameValidationMsg);
+                    function checkConnection (url) {
+                        $.ajax({
+                            url: url,
+                            cache: false,
+                            timeout:1000,
+                            error: function (jqXHR, textStatus) {
+                                //alert("Request failed: " + textStatus ); 
+                            },
+                            success: function () {
+                                $(".newUserSection").css("display", "block");   
+                            }
+                        });       
+                     }    
+                     checkConnection("./userReg.html"); // show new user section if reg page is reachable
 
-                        // divert form submit action to this javascript function
-                        $("#login_form").submit (function(e) {
-                            $(".error2").css("display", "none");
-                            CLMSUI.loginForms.ajaxPost (e.target);
-                            e.preventDefault();
-                        });
-                     });
-                });
+                     var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
+                    $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
+                    $("#login-name-errorMsg").text("< "+nameValidationMsg);
+
+                    // divert form submit action to this javascript function
+                    $("#login_form").submit (function(e) {
+                        $(".error2").css("display", "none");
+                        CLMSUI.loginForms.ajaxPost (e.target);
+                        e.preventDefault();
+                    });
+                 });
             });
         </script>
     </div>
