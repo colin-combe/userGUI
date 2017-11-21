@@ -63,6 +63,10 @@
         
         "superuserRequired": "Superuser status required to change this",
         
-        "xiAdminEmail": "xiadmin@ed.ac.uk"
+        "xiAdminEmail": "xiadmin@ed.ac.uk",
+        
+        "xiBack": "Back",
+        "xiHelp": "Help",
+        "xiHelpURL": "../../xidocs/html/userGUI/index.html"
     }
 }

@@ -121,3 +121,11 @@ h3 {
 .newUserSection form, #reset_password_form {
     display: inline-block;
 }
+
+.topRight {
+    float: right;
+}
+
+.topRight button {
+    transition: none;
+}
