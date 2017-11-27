@@ -22,18 +22,6 @@ var CLMSUI = (function (mod) {
 
         // Stuff that can be done before any php/database shenanigans
         function canDoImmediately () {
-            // Make buttons
-            var buttonData = [
-                {id: "#backButton", type: "button"},
-            ];
-            buttonData.forEach (function (buttonDatum) {
-                var buttonID = buttonDatum.id;
-                d3.select(buttonID).attr("type", buttonDatum.type);
-                $(buttonID).button();  
-            });
-
-            // Add action for back button
-            d3.select("#backButton").on("click", function() { window.history.back(); });
 
             // http://stackoverflow.com/questions/3519665/disable-automatic-url-detection-for-elements-with-contenteditable-flag-in-ie
             document.execCommand ("AutoUrlDetect", false, false); // This stops IE9+ auto-linking emails in contenteditable areas
@@ -93,8 +81,8 @@ var CLMSUI = (function (mod) {
              };
          }
 
-         function getMsg (key) {
-             return CLMSUI.msgs["en"][key];
+         function getMsg (key, lang) {
+             return CLMSUI.msgs[lang || "en"][key];
          }
 
 
@@ -114,7 +102,22 @@ var CLMSUI = (function (mod) {
                 var config = configxhr[0];
                 var msgs = msgsxhr[0];
                  CLMSUI.msgs = msgs;
-                 console.log ("MSGS", msgs);
+                 //console.log ("MSGS", msgs);
+                
+                // Add action for back button
+                d3.select("#backButton").on("click", function() { window.history.back(); });
+                d3.select("#helpButton").on("click", function() { window.open (getMsg ("xiHelpURL"), "_blank"); });
+                // Make buttons - previously could do immediately, but loading in text from msgs.json means icons need to be added afterwards
+                var buttonData = [
+                    {id: "#backButton", type: "button", icon: "ui-icon-arrowreturnthick-1-w", label: getMsg ("xiBack")},
+                    {id: "#helpButton", type: "button", icon: "ui-icon-help", label: getMsg ("xiHelp")},
+                ];
+                buttonData.forEach (function (buttonDatum) {
+                    var buttonID = buttonDatum.id;
+                    d3.select(buttonID).attr ("type", buttonDatum.type);
+                    $(buttonID).button ({icon: buttonDatum.icon, label: buttonDatum.label});  
+                });
+                
                 // Having a /gi rather than just /i at the end of the regex knackers testing as the regex is reused - regex will start looking from last match rather than start
                  var emailRegexParts = splitRegex (config.emailRegex);
                 CLMSUI.regExpPatterns = {/*"user_name": new RegExp (/\S{3}/i),*/ "email": new RegExp (emailRegexParts[1], emailRegexParts[2]), /*"reset_Password": new RegExp (/.{7}|^$/i)*/};

@@ -78,14 +78,13 @@ H3 {
     display: none;
 }
 
-#backButton {
+.topRight {
     float: right;
 }
 
-#backButton span {
+.topRight span {
     display: inline-block;
 }
-
 
 :-ms-input-placeholder {
    color: #ccc !important;

@@ -41,6 +41,7 @@
   <body>
 
 	<header>
+        <span class="topRight"><button id="helpButton"></button></span>
         <h1>Xi User Login</h1>
 	</header>
 
@@ -87,6 +88,7 @@
                     var config = configxhr[0];
                     CLMSUI.loginForms.msgs = msgs;
                     CLMSUI.loginForms.makeFooter();
+                    CLMSUI.loginForms.makeHelpButton();
 
                     function checkConnection (url) {
                         $.ajax({

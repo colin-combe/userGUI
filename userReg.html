@@ -19,6 +19,7 @@
      <body>
          
         <header>
+            <span class="topRight"><button id="helpButton"></button></span>
             <h1>Create New Xi User Account</h1>
         </header>
 
@@ -70,6 +71,7 @@
                         var msgs = msgsxhr[0];
                         CLMSUI.loginForms.msgs = msgs;
                         CLMSUI.loginForms.makeFooter();
+                        CLMSUI.loginForms.makeHelpButton();
                         CLMSUI.loginForms.finaliseRecaptcha (config.googleRecaptchaPublicKey);
                         var spinner = CLMSUI.loginForms.getSpinner();
 

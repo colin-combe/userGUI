@@ -86,6 +86,22 @@ var CLMSUI = (function (mod) {
                 radius: 7, // The radius of the inner circle
             });
         },
+        
+        makeHelpButton: function () {
+            $("#helpButton").on("click", function() { window.open (CLMSUI.loginForms.getMsg ("xiHelpURL"), "_blank"); });
+            // Make buttons - previously could do immediately, but loading in text from msgs.json means icons need to be added afterwards
+            var buttonData = [
+                {id: "#helpButton", type: "button", label: this.getMsg ("xiHelp")},
+            ];
+            buttonData.forEach (function (buttonDatum) {
+                var buttonID = buttonDatum.id;
+                $(buttonID)
+                    .attr("type", buttonDatum.type)
+                    .attr("class", "btn")
+                    .text (buttonDatum.label)
+                ; 
+            });
+        },
     };
     
     return mod;
