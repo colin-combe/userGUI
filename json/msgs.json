@@ -35,6 +35,7 @@
         "newUserErrorCatchall": "An Error occurred when adding a new user to the database",
         "newUserEmailHeader": "Xi Registration",
         "newUserEmailBody": "You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.",
+        "newUserEmailBodyXiUI": "You're now registered with XiUi.",
         
         "captchaError": "Captcha Failure",
         

@@ -1,5 +1,5 @@
 <?php
-include ('../../connectionString.php');
+include ('../../xiUI-connectionString.php');
 include ('../../../xi_ini/emailInfo.php');
 include ('utils.php');
 
@@ -40,22 +40,26 @@ try {
         // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
         pg_query("BEGIN") or die("Could not start transaction\n");
         $hash = $pword ? password_hash ($pword, PASSWORD_BCRYPT) : "";
-        $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, email, max_aas, max_spectra) VALUES($1, $3, $2, 100000000, 100000) RETURNING id, user_name");
+        $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, email) VALUES($1, $3, $2) RETURNING id, user_name");
         $result = pg_execute($dbconn, "newUser", [$username, $email, $hash]);
         $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
         $returnedID = $returnRow["id"];
 
-        $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
-        $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "12"]);
-
-         pg_query("COMMIT");
+        if (!isset($noGroups)) {        
+            $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
+            $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "12"]);
+        }
+        pg_query("COMMIT");
 
         require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
         require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
 
         $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
-        $mail->MsgHTML(getTextString("newUserEmailBody"));
-        
+        if (!isset($noGroups)) {        
+            $mail->MsgHTML(getTextString("newUserEmailBody"));
+        } else {
+            $mail->MsgHTML(getTextString("newUserEmailBodyXiUI"));
+        }
         if(!$mail->Send()) {
              error_log (print_r ("failsend", true));
             echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
