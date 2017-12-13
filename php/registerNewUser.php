@@ -1,5 +1,5 @@
 <?php
-include ('../../xiUI-connectionString.php');
+include ('../../connectionString.php');
 include ('../../../xi_ini/emailInfo.php');
 include ('utils.php');
 
