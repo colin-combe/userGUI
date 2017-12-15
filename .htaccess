@@ -2,5 +2,5 @@
     Order deny,allow
     Deny from all
     # Edinburgh and Berlin
-    Allow from 129.215 130.149 134.119 ::1
+    Allow from 129.215 130.149 ::1
 </Files>
