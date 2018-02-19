@@ -48,10 +48,8 @@ try {
         $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
         $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "12"]);
 
-         pg_query("COMMIT");
-
-        require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
-        require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
+        require_once    ('../vendor/php/PHPMailer-master/src/PHPMailer.php');
+        require_once    ('../vendor/php/PHPMailer-master/src/SMTP.php');
 
         $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
         $mail->MsgHTML(getTextString("newUserEmailBody"));
@@ -61,6 +59,7 @@ try {
             echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
         } 
         else {
+			pg_query("COMMIT");	// only commit if email to user was successful, otherwise we get a user in the database but no way for real person to interact with account
             $json = json_encode(array ("status"=>"success", "msg"=> getTextString("newUserEmailInfo", [$username]), "username"=>$username));
             echo ($json);
         }
@@ -68,6 +67,7 @@ try {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
          $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("newUserErrorCatchall");
+		 error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date, "revalidate"=> true)));
     }
 

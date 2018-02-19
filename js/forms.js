@@ -45,7 +45,7 @@ var CLMSUI = (function (mod) {
                     }
                 },
                 error: function (jqXhr, textStatus, errorThrown) {
-                    console.log ("error args", arguments); // some other error chucked by php
+					$("#msg").html("Server side error: "+jqXhr.responseText+".<br>Please contact Xi Administrator.");
                 },
                 complete: function () {
                     if (doneFunc) {
