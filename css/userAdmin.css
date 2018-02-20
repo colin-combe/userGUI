@@ -86,6 +86,10 @@ H3 {
     display: inline-block;
 }
 
+.topRight button:not(:last-of-type) {
+	margin-right: 0.5em;
+}
+
 :-ms-input-placeholder {
    color: #ccc !important;
 }

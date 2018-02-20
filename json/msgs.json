@@ -66,6 +66,8 @@
         "xiAdminEmail": "xiadmin@ed.ac.uk",
         
         "xiBack": "Back",
+		"xiLogout": "Log Out",
+		"xiLogoutURL": "./php/logout.php",
         "xiHelp": "Help",
         "xiHelpURL": "../../xidocs/html/userGUI/index.html"
     }

@@ -107,10 +107,12 @@ var CLMSUI = (function (mod) {
                 // Add action for back button
                 d3.select("#backButton").on("click", function() { window.history.back(); });
                 d3.select("#helpButton").on("click", function() { window.open (getMsg ("xiHelpURL"), "_blank"); });
+				d3.select("#logoutButton").on("click", function() { window.location.href = getMsg ("xiLogoutURL"); });
                 // Make buttons - previously could do immediately, but loading in text from msgs.json means icons need to be added afterwards
                 var buttonData = [
                     {id: "#backButton", type: "button", icon: "ui-icon-arrowreturnthick-1-w", label: getMsg ("xiBack")},
                     {id: "#helpButton", type: "button", icon: "ui-icon-help", label: getMsg ("xiHelp")},
+					{id: "#logoutButton", type: "button", icon: "ui-icon-extlink", label: getMsg ("xiLogout")},
                 ];
                 buttonData.forEach (function (buttonDatum) {
                     var buttonID = buttonDatum.id;
@@ -624,7 +626,7 @@ var CLMSUI = (function (mod) {
                             var emailDatum = dArray.filter (function(d) { return d.key === "email"; })[0];
                             //emailDatum.value = "";
                             emailDatum.originalValue = "";
-                            selfDelete ? window.location.replace ("./php/logout.php") : signalContentChangeRow (deletingID, buttonEnablingLogic);
+                            selfDelete ? window.location.replace (getMsg ("xiLogoutURL")) : signalContentChangeRow (deletingID, buttonEnablingLogic);
                             // signalContentChange was previously removeRows ([deletingID], udata)
                          }
                      );
