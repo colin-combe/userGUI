@@ -104,19 +104,18 @@ var CLMSUI = (function (mod) {
                  CLMSUI.msgs = msgs;
                  //console.log ("MSGS", msgs);
                 
-                // Add action for back button
-                d3.select("#backButton").on("click", function() { window.history.back(); });
-                d3.select("#helpButton").on("click", function() { window.open (getMsg ("xiHelpURL"), "_blank"); });
-				d3.select("#logoutButton").on("click", function() { window.location.href = getMsg ("xiLogoutURL"); });
                 // Make buttons - previously could do immediately, but loading in text from msgs.json means icons need to be added afterwards
                 var buttonData = [
-                    {id: "#backButton", type: "button", icon: "ui-icon-arrowreturnthick-1-w", label: getMsg ("xiBack")},
-                    {id: "#helpButton", type: "button", icon: "ui-icon-help", label: getMsg ("xiHelp")},
-					{id: "#logoutButton", type: "button", icon: "ui-icon-extlink", label: getMsg ("xiLogout")},
+                    {id: "#backButton", type: "button", icon: "ui-icon-arrowreturnthick-1-w", label: getMsg ("xiBack"), func: function() { window.history.back(); }},
+                    {id: "#helpButton", type: "button", icon: "ui-icon-help", label: getMsg ("xiHelp"), func: function() { window.open (getMsg ("xiHelpURL"), "_blank"); }},
+					{id: "#logoutButton", type: "button", icon: "ui-icon-extlink", label: getMsg ("xiLogout"), func: function () { window.location.href = getMsg ("xiLogoutURL"); }},
                 ];
                 buttonData.forEach (function (buttonDatum) {
                     var buttonID = buttonDatum.id;
-                    d3.select(buttonID).attr ("type", buttonDatum.type);
+                    d3.select(buttonID)
+						.attr ("type", buttonDatum.type)
+						.on ("click", buttonDatum.func)
+					;
                     $(buttonID).button ({icon: buttonDatum.icon, label: buttonDatum.label});  
                 });
                 
@@ -322,28 +321,23 @@ var CLMSUI = (function (mod) {
         function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList, buttonEnablingLogic) {
             var selectSelect = d3.select(tableID).selectAll("select");
 
-            $(selectSelect).each (function() {
+            selectSelect.each (function(d) {
+				var selectElem = this;
                 $(this).multipleSelect({ 
                     single: true,
                     placeholder: "User Type",
                     width: 200,
                     maxHeight: "100%",
                     onClick: function (obj) {
-                        var parent = obj.instance.$parent.parent()[0];  // climb up to td element
-                        var origSelect = d3.select(parent).select("select");    // grab the original select element (as it has the bound data)
-                        var d = origSelect.datum(); // grab the data
                         d.value = [obj.value];  // replace the data value with the new value
-
-                        indicateChangedValues (d3.select(parent));   // up to td not input element
+                        indicateChangedValues (d3.select(selectElem.parentNode));   // up to td parent element
                         enableButton (d.id, "update", buttonEnablingLogic);
                     },
                 });
             });
 
-            // Two changes needed to get multipleSelect plug-in to work within a table:
-            // 1. So drop-downs overlay surrounding rows (gets cutoff otherwise)
-            d3.select(tableID).selectAll(".ms-parent").style ("position", "absolute").style("margin-top", "-1em");
-            // 2. Set header of this columns min-width to current width to stop column shrinkage due to above change
+            // Further change needed to get multipleSelect plug-in to work within a table:
+            // Set header of this columns min-width to current width to stop column shrinkage 
             d3.select(tableID).select("thead th:nth-child("+oneBasedColumnIndex+")").style ("min-width", "200px");
 
             d3.selectAll(".ms-drop").selectAll("li label")

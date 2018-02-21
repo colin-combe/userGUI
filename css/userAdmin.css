@@ -205,6 +205,14 @@ tbody tr td.changedValue {
     background: #f0f0f0;
 }
 
+/* First change needed to get multipleSelect plug-in to work within a table:
+ 1. Position absolute so drop-downs overlay surrounding rows (gets cutoff otherwise)
+*/
+table .ms-parent {
+	position: absolute;
+	margin-top: -1em;
+}
+
 u {    
     border-bottom: 1px dotted #000;
     text-decoration: none;
