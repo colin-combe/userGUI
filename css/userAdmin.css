@@ -210,7 +210,7 @@ tbody tr td.changedValue {
 */
 table .ms-parent {
 	position: absolute;
-	margin-top: -1em;
+	/*margin-top: -1em;*/
 }
 
 u {    
@@ -220,4 +220,16 @@ u {
 
 #username {
     text-transform: capitalize;
+}
+
+TABLE.d3table th.fitMultipleSelect, TABLE.d3table td.fitMultipleSelect {
+	min-width: 200px;
+}
+
+table.d3table {
+	font-size: 1em;
+}
+
+table.d3table tr {
+	height: 2em;
 }

@@ -138,33 +138,31 @@ var CLMSUI = (function (mod) {
                             },
                             tests: {
                                 // delete enabled if value is false
-                                delete: function (dArray) { return !truthy(dArray[0].value); },
+                                delete: function (dArray) { console.log ("darray", dArray); return !truthy(dArray[0].value[dArray[0].key]); },
                                 // password resetting allowed if valid email and user group
                                 reset_Password: function (dArray) {
                                     return dArray.every (function (d) { 
                                         return isOriginalDatumValid (d, false);
                                     });    
                                 },
-                                // updating allowed if valie email and user group, and either is different from original value
+                                // updating allowed if valid email and user group, and either is different from original value
                                 update: function (dArray, isSuperUser) {
                                     // are at least some of these fields different from their original values?
                                     var enabled = dArray.some (function (d) {
                                         return !equals(d);
                                     });     
+									console.log ("enabled", enabled);
                                     // and are these new values valid?
                                     enabled &= dArray.every (function (d) { 
                                         return isDatumValid (d, isSuperUser);
                                     });
+									console.log ("enabled2", enabled);
                                     return enabled;
                                 },
                             }
                         };
-                        var buttonLabels = {
-                            delete: "delete",
-                            update: "update",
-                            reset_Password: "reset password"
-                        };
-                        makeTable (response.data, response.superuser, response.userid, response.groupTypeData, buttonLabels, buttonEnabling);
+
+                        makeTable (response.data, response.superuser, response.userid, response.groupTypeData, buttonEnabling);
                     }
                  )();
              });
@@ -197,10 +195,13 @@ var CLMSUI = (function (mod) {
         }
 
         function equals (d) {
-            if ($.isArray(d.value) && $.isArray(d.originalValue)) {
-                return $(d.value).not(d.originalValue).length === 0 && $(d.originalValue).not(d.value).length === 0;
+			console.log ("dddddd", d);
+			var dv = d.value[d.key];
+			var dov = d.value.originalData[d.key];
+            if ($.isArray(dv) && $.isArray(dov)) {
+                return $(dv).not(dov).length === 0 && $(dov).not(dv).length === 0;
             }
-            return d.value === d.originalValue;
+            return dv === dov;
         }
 
         function indicateChangedValues (sel) {
@@ -217,48 +218,32 @@ var CLMSUI = (function (mod) {
             });
         }
 
-        // turn obj into ordered array of key/value/id/originalValue values
-        function datumiseRow (d, types, typeOrder) {
-            fillInMissingFields (d, types); 
-
-            var val = d3.entries(d);
-            val.forEach (function (dd) {
-                if (types[dd.key] === "checkbox") {
-                    dd.value = truthy (dd.value);
-                }
-                dd.originalValue = dd.value;
-                dd.id = d.id;
-            });
-
-            var orderMap = makeMapFromArray (val, "key");
-            return typeOrder.map (function (type) { // order the values according to typeOrder
-                return orderMap.get (type);
-            });
-        }
-
         function isDatumValid (d, isSuperUser) {
+			console.log ("dvalid", d);
             var reg = CLMSUI.regExpPatterns[d.key];
-            return !reg || reg.test(d.value || "") || (isSuperUser && !d.value);    // superusers can enter empty values
+            return !reg || reg.test(d.value[d.key] || "") || (isSuperUser && !d.value[d.key]);    // superusers can enter empty values
         }
 
         function isOriginalDatumValid (d, isSuperUser) {
             var reg = CLMSUI.regExpPatterns[d.key];
-            return !reg || reg.test(d.originalValue || "") || (isSuperUser && !d.originalValue);    // superusers can enter empty values
+            return !reg || reg.test(d.value.originalData[d.key] || "") || (isSuperUser && !d.value.originalData[d.key]);    // superusers can enter empty values
         }
 
         // Enable a button dependent on a test (found in buttonEnablingLogic)
-        function enableButton (id, columnName, buttonEnablingLogic) {
+        function enableButton (rowData, columnName, buttonEnablingLogic) {
             var filters = buttonEnablingLogic.filters;
             var tests = buttonEnablingLogic.tests;
+			var rowid = rowData.id;
 
             // get correct row for id
-            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
-            // filter the data for this row to just the column values to be tested
-            var d3Data = d3Sel.data().filter (function(d) {
-                return filters[columnName].has (d.key);
-            });
+            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === rowid; }).selectAll("td");
+			var cellData = d3Sel.data();
+			
+			var testData = cellData.filter (function(d) { return filters[columnName].has (d.key); });
             // run a test on these column values
-            var enabled = tests[columnName](d3Data, filters.isSuperUser);
+			console.log ("td", rowData, testData, cellData, d3Sel, columnName, filters[columnName]);
+            var enabled = tests[columnName](testData, filters.isSuperUser);
+			console.log ("column", columnName, enabled);
 
             d3Sel
                 .filter(function(d) { return d.key === columnName; })   // filter to right button
@@ -276,23 +261,25 @@ var CLMSUI = (function (mod) {
         }
 
         function signalContentChange (d, buttonEnablingLogic) {
-            d.value = d3.select(this).text();
+            d.value[d.key] = d3.select(this).text();
             indicateValidValues (d3.select(this));
             indicateChangedValues (d3SelectParent(this));   // up to td not span element
-            enableButton (d.id, "update", buttonEnablingLogic);
+			console.log ("scc", d);
+            enableButton (d.value, "update", buttonEnablingLogic);
         }
 
         // Used when entire row content check needs done i.e. after database update
         function signalContentChangeRow (id, buttonEnablingLogic) {
-            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; }).selectAll("td");
-            setRowIndicators (id, d3Sel, buttonEnablingLogic);
+            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; });
+            setRowIndicators (d3Sel, buttonEnablingLogic);
         }
 
-        function setRowIndicators (id, cellSelection, buttonEnablingLogic) {
-            indicateChangedValues (cellSelection);
-            enableButton (id, "update", buttonEnablingLogic);
-            enableButton (id, "delete", buttonEnablingLogic);
-            enableButton (id, "reset_Password", buttonEnablingLogic);
+        function setRowIndicators (singleRowSelection, buttonEnablingLogic) {
+            indicateChangedValues (singleRowSelection.selectAll("td"));
+			var d = singleRowSelection.datum();
+            enableButton (d, "update", buttonEnablingLogic);
+            enableButton (d, "delete", buttonEnablingLogic);
+            enableButton (d, "reset_Password", buttonEnablingLogic);
         }
 
 
@@ -317,228 +304,226 @@ var CLMSUI = (function (mod) {
         function stripUnderscores (d) {
             return d.replace (/_/g, " ");
         }
-
-        function makeMultipleSelects (tableID, oneBasedColumnIndex, optionList, buttonEnablingLogic) {
-            var selectSelect = d3.select(tableID).selectAll("select");
-
-            selectSelect.each (function(d) {
-				var selectElem = this;
-                $(this).multipleSelect({ 
-                    single: true,
-                    placeholder: "User Type",
-                    width: 200,
-                    maxHeight: "100%",
-                    onClick: function (obj) {
-                        d.value = [obj.value];  // replace the data value with the new value
-                        indicateChangedValues (d3.select(selectElem.parentNode));   // up to td parent element
-                        enableButton (d.id, "update", buttonEnablingLogic);
-                    },
-                });
-            });
-
-            // Further change needed to get multipleSelect plug-in to work within a table:
-            // Set header of this columns min-width to current width to stop column shrinkage 
-            d3.select(tableID).select("thead th:nth-child("+oneBasedColumnIndex+")").style ("min-width", "200px");
-
-            d3.selectAll(".ms-drop").selectAll("li label")
-                .attr("title", function(d,i) {
-                    return typeCapabilities (optionList.user_group[i]);
-                })
-            ;
-        }
+		
 
 
-         function makeTable (userData, isSuperUser, userId, groupTypeData, labelMap, buttonEnablingLogic) {
+         function makeTable (userData, isSuperUser, userId, groupTypeData, buttonEnablingLogic) {
             userData.forEach (function (userDatum) {
                 userDatum.you = (userDatum.id === userId);    // mark which user is the current user
+				userDatum.originalData = $.extend({}, userDatum);
             });
+			 
+			 // for sorting / filtering column of user groups (technically, it can have multiple values)
+			var alphaArrayTypeSettingsFactory = function (labelMap) {
+				return {
+					preprocessFunc: function (filterVal) {
+						return this.typeSettings("alpha").preprocessFunc (filterVal);
+					},
+					filterFunc: function (datum, processedFilterVal) {
+						var basicFilterFunc = this.typeSettings("alpha").filterFunc;
+						var pass = false;
+						if (Array.isArray(datum)) {
+							// just need 1 element in array to not be filtered out to pass
+							for (var m = 0; m < datum.length; m++) {
+								if (basicFilterFunc (labelMap[datum[m]], processedFilterVal)) {
+									pass = true;
+									break;
+								}
+							}
+						} else {
+							pass = basicFilterFunc (labelMap[datum], processedFilterVal);
+						}
+						return pass;
+					},
+					comparator: function (a, b) {
+						var comparator = this.typeSettings("alpha").comparator;
+						var minlen = Math.min (a.length, b.length);
+						for (var n = 0; n < minlen; n++) {
+							var diff = comparator (labelMap[a[n]], labelMap[b[n]]);
+							if (diff !== 0) {
+								return diff;
+							}
+						}
 
-            var types = {
-                id: "text", you: "text", user_name: "text", user_group: "select", email: "text", update: "button", reset_Password: "button", delete: "button"
-            };
+						var z = a.length - b.length;
+						return z;
+					}
+				};
+			};
+			 var groupLabelMap = {};
+			 groupTypeData.forEach (function (group) {
+				 groupLabelMap[group.id] = group.name;
+			 })
+			 var alphaArrayTypeSettings = alphaArrayTypeSettingsFactory (groupLabelMap);
+			 
+			 
+			function highlightRows (rowSel) {
+				rowSel.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
+			}
+			 
+			 function enableCells (rowSel) {
+				 rowSel.each (function (d, i) {
+					 console.log ("row", d3.select(this));
+					 setRowIndicators (d3.select(this), buttonEnablingLogic);
+				 })	
+			 }
+			 
+			 var columnMetaData = [
+				{name: "ID", type: "numeric", tooltip: "", visible: isSuperUser, removable: true, id: "id"},
+				{name: "You", type: "boolean", tooltip: "", visible: isSuperUser, removable: true, id: "you"},
+				{name: "User Name", type: "alpha", tooltip: "", visible: true, removable: false, id: "user_name"},
+				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: true, id: "user_group"},
+				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: true, id: "email"},
+				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: true, id: "update"},
+				{name: "Reset Password", type: "boolean", tooltip: "", visible: true, removable: true, id: "reset_Password"},
+				{name: "Delete", type: "boolean", tooltip: "", visible: true, removable: true, id: "delete"},
+			];
+			 
+			 var headerEntries = columnMetaData.map (function (cmd) {
+				 return {key: cmd.id, value: cmd};
+			 });
+			 
+			 var buttonHook = function (sel) { 
+				var but = sel.select("button");
+				but.on ("click", function (d) {  
+					perUserActions[d.key+"User"](userData, d.value, {userGroup: groupTypeData});
+				 });
+				 $(but).button()
+				 but.each (function (d,i) {
+					 $(this).button(d.value[d.key] ? "disable" : "enable");
+				 });
+				 
+			 };
 
             var tableSettings = {
                 users: {domid: "#userTable", 
                         data: userData, 
-                        dataIDField: "id",
-                        autoWidths: d3.set([/*"reset_Password",*/ "email"]), 
-                        editable: d3.set([/*"reset_Password",*/ "email"/*, "user_name"*/]),
-                        superUserEditable: d3.set(["user_group"]),
-                        columnTypes: types,
-                        columnOrder: d3.keys(types),
-                        columnIcons: {you : "ui-icon-person"},
-                        optionLists: {user_group: groupTypeData},
+						headerEntries: headerEntries,
+						modifiers: {
+							you: function (d) { return d.you ? "<span class='ui-icon ui-icon-person'></span>" : ""; },
+							user_group: function (d) { return "<select></select>"; },
+							email: function (d) { return "<span>"+d.email+"</span>"; },
+							update: function (d) { return "<button>Update</button>"; },
+							reset_Password: function (d) { return "<button>Reset Password</button>"; },
+							delete: function (d) { return "<button>Delete "+(userId === d.id ? " Me" : " User")+"</button>"; },
+						},
+						cellStyles: {user_group: "fitMultipleSelect"},
+						autoWidths: d3.set(["email"]),
+						cellD3Hooks: {
+							user_group: function (cellSel) {
+								var d = cellSel.datum();
+								var groupVals = d.value[d.key];
+								console.log ("datum", cellSel.datum());
+								var readOnly = !isSuperUser;
+								cellSel.select("select")
+									.property ("disabled", readOnly)
+									.attr ("title", readOnly ? getMsg ("superuserRequired") : "")
+									.selectAll("option")
+										.data (groupTypeData, function(d) { return d.id; })
+										.enter()
+										.append("option")
+										.attr ("value", function(d) { return d.id; })
+										.property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
+										.text (function(d) { return stripUnderscores (d.name); })
+								;	
+								
+								$(cellSel.select("select")).multipleSelect({ 
+									single: true,
+									placeholder: "User Type",
+									width: 200,
+									maxHeight: "100%",
+									onClick: function (obj) {
+										console.log ("obj", obj, "d", d);
+										d.value[d.key] = [obj.value];  // replace the data value with the new value
+										indicateChangedValues (cellSel);   // up to td parent element
+										enableButton (d.value, "update", buttonEnablingLogic);
+									},
+								});
+								
+								cellSel.select(".ms-drop").selectAll("li label")
+									.attr("title", function (d, i) {
+										return typeCapabilities (groupTypeData[i]);
+									})
+								;
+							},
+							email: function (cellSel) {
+								cellSel
+									.select("span")
+									.attr("contenteditable", "true")
+									.on ("input", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
+                            		.on ("keyup", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
+                            		.on ("paste", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
+								;
+							},
+							update: function (cellSel) { buttonHook (cellSel); },
+							delete: function (cellSel) { buttonHook (cellSel); },
+							reset_Password: function (cellSel) { buttonHook (cellSel); },
+						}
                 },
             };
+			 
+			var applyHeaderStyling = function (headerSel, autoWidths, cellStyles) {
+				var vcWidth = Math.floor (100.0 / Math.max (1, autoWidths.size() + 1))+"%";
+
+				headerSel
+					.classed ("ui-state-default", true)
+					.filter (function(d) { return autoWidths.has(d.key); })
+					.classed ("varWidthCell", true)
+					.style ("width", vcWidth)
+				;
+				
+				headerSel
+					.filter (function(d) { return cellStyles[d.key]; })
+					.each (function(d) {
+						d3.select(this).classed (cellStyles[d.key], true);
+					})
+				;
+			};
 
             d3.values(tableSettings).forEach (function (tableSetting) { makeIndTable (tableSetting); });
 
             function makeIndTable (tableSetting) {
                 var sel = d3.select (tableSetting.domid);
                 var baseId = tableSetting.domid.slice(1)+"Table";
-                if (sel.select("table").empty()) {
-                    sel.html ("<TABLE><THEAD><TR></TR></THEAD><TBODY></TBODY></TABLE>");
-                    sel.select("table")
-                        .attr("id", baseId)
-                        .attr("class", "previousTable")
-                    ;
-                }
+				
+				var d3tab = d3.select(tableSetting.domid).append("div").attr("class", "d3tableContainer")
+					.datum({
+						data: tableSetting.data, 
+						headerEntries: tableSetting.headerEntries, 
+						cellStyles: tableSetting.cellStyles,
+						cellD3Hooks: tableSetting.cellD3Hooks,
+						columnOrder: tableSetting.headerEntries.map (function (hentry) { return hentry.key; }),
+					})
+				;
+				
+				var modifiers = tableSetting.modifiers;
+				
+				var table = CLMSUI.d3Table ();
+				table (d3tab);
+				applyHeaderStyling (table.getHeaderCells(), tableSetting.autoWidths, tableSetting.cellStyles);
+				console.log ("table", table);
 
-                // has dataTable class already been initialized on this table?
-                var firstTime = !sel.select("table").classed("dataTable");   
-                var vcWidth = Math.floor (100.0 / Math.max (1, tableSetting.autoWidths.size()))+"%";
+				// set initial filters
+				var keyedFilters = {};
+				headerEntries.forEach (function (hentry) {
+					keyedFilters[hentry.key] = {value: "", type: hentry.value.type}	
+				});
 
-                var hrow = sel.select("tr");    // Make column header row
-                if (!firstTime) {
-                    // DataTables visible() seems to entirely remove columns from a table rather than just css them out of view
-                    // so need to make visible hidden columns or .enter will add in new columns we don't want
-                    $("#"+baseId).DataTable().columns().visible(true);  
-                }
-                hrow.selectAll("th").data(tableSetting.columnOrder)
-                    .enter()
-                    .append("th")
-                    .text (function(d) { return labelMap[d] || stripUnderscores(d); })    // regex needed to replace multiple "_"
-                    .filter (function(d) { return tableSetting.autoWidths.has(d); })
-                    .classed ("varWidthCell", true)
-                     .style ("width", vcWidth)
-                ;
+				table
+					.typeSettings ("alphaArray", alphaArrayTypeSettings)
+					.filter(keyedFilters)
+					.orderKey("id")
+					.sort()
+					.dataToHTML (modifiers)
+					.postUpdate (function (rowSel) {
+						highlightRows (rowSel);
+						enableCells (rowSel);
+					})
+				;
 
-                var tbody = sel.select("tbody");
-                console.log ("tab", tableSetting.data, tbody.selectAll("tr"));
-                var rowJoin = tbody.selectAll("tr").data(tableSetting.data, function(d) { return d[tableSetting.dataIDField]; });
-                var newRows = rowJoin.enter().append("tr");
-                console.log ("newRows", newRows, rowJoin.exit());
-
-                var cellJoin = newRows.selectAll("td").data (function(d) { 
-                    return datumiseRow (d, tableSetting.columnTypes, tableSetting.columnOrder);
-                });
-                var newCells = cellJoin.enter().append("td");
-
-
-                newCells.each (function (d) {
-                    var elemType = tableSetting.columnTypes[d.key];
-                    var d3Elem = d3.select(this);
-
-                    if (elemType === "text") {
-                        var span = d3Elem.append("span")
-                            .text(function(d) { return d.value || ""; })
-                            .on ("input", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-                            .on ("keyup", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-                            .on ("paste", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-                            .attr ("contenteditable", tableSetting.editable.has(d.key))
-                        ;
-                        if (tableSetting.columnIcons[d.key]) {
-                            span.classed("ui-icon "+tableSetting.columnIcons[d.key], d.value);
-                        }
-                    }
-                    else if (elemType === "button") {
-                        d3Elem.append("input")
-                            .attr ("type", elemType)
-                            //.text (function(d) { return d.key+" User"; })
-                            .property ("value", function(d) {
-                                return (labelMap[d.key] || d.key) + (d.key !== "reset_Password" ? (userId === d.id ? " Me" : " User") : ""); 
-                            })
-                            .on ("click", function (d) {  
-                                // pick data from all cells in row with the right id
-                                var rowSel = tbody.selectAll("tr").filter(function(dd) { return dd.id === d.id; });
-                                var rowCellData = rowSel.selectAll("td").data();
-                                perUserActions[d.key+"User"](tableSetting.data, rowCellData, tableSetting.optionLists);
-                            })
-                        ;
-                    }
-                    else if (elemType === "checkbox") {
-                        d3Elem.append("input")
-                            .attr ("type", elemType)
-                            .property("checked", truthy (d.value))
-                            .on ("click", function (d) {
-                                d.value = !!!d.value;
-                                indicateChangedValues (d3SelectParent(this));   // up to td not input element
-                                enableButton (d.id, "update", buttonEnablingLogic);
-                            })
-                        ;
-                    }
-                    else if (elemType === "select") {
-                        var groupVals = d.value;
-                        var readOnly = !isSuperUser && tableSetting.superUserEditable.has(d.key);
-                        d3Elem.append("select")
-                            .property ("disabled", readOnly)
-                            .attr ("title", readOnly ? getMsg ("superuserRequired") : "")
-                            .selectAll("option")
-                                .data(tableSetting.optionLists[d.key], function(d) { return d.id; })
-                                .enter()
-                                .append("option")
-                                .attr ("value", function(d) { return d.id; })
-                                .property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
-                                .text (function(d) { return stripUnderscores (d.name); })
-                        ;
-                    }
-                });
-
-                // Turn update/delete buttons into JQuery-UI styled buttons
-                var d3ButtonSel = newCells.selectAll("input[type='button']");
-                var jqButtonSel = [].concat.apply([], d3ButtonSel);
-                $(jqButtonSel).button();
-
-                // For each row, existing or new, decide some states
-                rowJoin.each (function (d) {
-                    setRowIndicators (d.id, d3.select(this).selectAll("td"), buttonEnablingLogic);
-                }); 
-
-                newCells
-                    // stuff for variable width cells, including adding tooltips
-                    .filter (function(d) { return tableSetting.autoWidths.has(d.key); })
-                    .classed ("varWidthCell", true)
-                    .style ("width", vcWidth) 
-                ;
-
-                if (firstTime) { 
-                    // Run initial DataTable setup and set various column properties
-                    var selectColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["select"]);
-                    makeMultipleSelects ("#"+baseId, selectColumns[0] + 1, tableSetting.optionLists, buttonEnablingLogic);
-
-                    var checkboxColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, [], ["checkbox"]);
-                    var updateUserColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["update"], []);
-                    var unsortableColumns = !isSuperUser ? d3.range (0, tableSetting.columnOrder.length)
-                        : getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["reset_Password", "delete"], [])
-                    ;
-                    $("#"+baseId).dataTable ({
-                        "paging": true,
-                        "jQueryUI": true,
-                        "ordering": true,
-                        "order": [[ 0, "desc" ]],   // order by first column
-                        "columnDefs": [
-                            {"orderDataType": "dom-checkbox", "targets": checkboxColumns},   // 2nd and 3rd columns will be sorted by checkbox value
-                            {"orderDataType": "disabled-button", "targets": updateUserColumns},   // this column will be sorted by disabled property value
-                            {"orderable": false, "targets": unsortableColumns}, // These columns shouldn't be sortable (all same value)
-                        ]
-                    });
-                } else {
-                    // how to tell DataTables we have added rows (took ages to figure this out)
-                    // update 05/12/16; actually, adding adds every row not on the current page again :-(
-                    // good job i don't really need to add anything to the table anymore, just delete the odd user
-                    // var addRows = newRows.filter(function(r) { return r !== null; });   // first strip out nulls (which represent existing rows)
-                    // var jqSel = $(addRows[0]);  // turn the d3 selection of rows into a jquery selection of rows
-                    // $("#"+baseId).DataTable().rows.add(jqSel).draw();   // add the jquery selection using .rows()
-
-                    // how to tell DataTables we have removed rows (this was easier)
-                    rowJoin.exit().classed ("toBeRemoved", true);
-                    $("#"+baseId).DataTable().rows(".toBeRemoved").remove().draw();
-                    rowJoin.exit().remove();
-                }
-                if (!isSuperUser) {
-                    var superuserOnlyColumns = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, ["id", "super_user", "you"], []);
-                    // best to hide columns user has no privilege to change - http://stackoverflow.com/a/372503/368214
-                    $("#"+baseId).DataTable().columns(superuserOnlyColumns).visible(false);
-
-                    // Except where we want it to communicate a state
-                    var superuserOnlyColumns2 = getIndicesOf (tableSetting.columnOrder, tableSetting.columnTypes, tableSetting.superUserEditable.values(), []);
-                    $("#"+baseId).DataTable().columns(superuserOnlyColumns2).nodes().flatten().to$().addClass("readOnly");
-                }
-
-                // highlight user's own row, do after datatable 'cos it wipes out existing classes
-                newRows.classed ("isUser", function(d) { return isSuperUser && d.id === userId; }); 
+				table.update();
             }
-
+			
              function removeRows (ids, udata) {
                  udata = udata.filter (function (uDatum) {
                     return ids.indexOf (uDatum.id) < 0; 
@@ -570,7 +555,7 @@ var CLMSUI = (function (mod) {
                      dArray.forEach (function(d) {
                          jsonObj[d.key] = d.value;
                      });
-                     var removingOwnSuperuserStatus = areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj, optionLists);
+                     var removingOwnSuperuserStatus = areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj);
 
                      var updateUserAjax = makeAjaxFunction (
                          "php/updateUser.php", 
@@ -579,7 +564,7 @@ var CLMSUI = (function (mod) {
                          function () { 
                              //console.log ("updated obj", jsonObj);
                             dArray.forEach (function(d) {
-                                d.originalValue = d.value;
+                                d.originalData = d.value;
                             });
                             if (removingOwnSuperuserStatus) {
                                 // This is easier than trying to persude DataTables to reveal the original rows in the table and remove them
@@ -605,8 +590,8 @@ var CLMSUI = (function (mod) {
                      }
                  },
 
-                 deleteUser: function (udata, dArray) {
-                     var deletingID = dArray[0].id;
+                 deleteUser: function (udata, d) {
+                     var deletingID = d.id;
                      var selfDelete = deletingID == userId;
 
                      var deleteUserAjax = makeAjaxFunction (
@@ -614,12 +599,9 @@ var CLMSUI = (function (mod) {
                          {id: deletingID}, 
                          getMsg ("deleteCatchallError"),
                          function () { 
-                            var deleteDatum = dArray.filter (function(d) { return d.key === "delete"; })[0];
-                            deleteDatum.value = true;
-                            deleteDatum.originalValue = true;
-                            var emailDatum = dArray.filter (function(d) { return d.key === "email"; })[0];
-                            //emailDatum.value = "";
-                            emailDatum.originalValue = "";
+                            d.delete = true;
+                            d.originalData.delete = true;
+                            d.originalData.email = "";
                             selfDelete ? window.location.replace (getMsg ("xiLogoutURL")) : signalContentChangeRow (deletingID, buttonEnablingLogic);
                             // signalContentChange was previously removeRows ([deletingID], udata)
                          }
@@ -628,10 +610,10 @@ var CLMSUI = (function (mod) {
                      CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg(selfDelete ? "clientDeleteYourself" : "clientDeleteUser"), getMsg("pleaseConfirm"), getMsg("proceedDelete"), getMsg("cancel"), deleteUserAjax);
                  },
 
-                 reset_PasswordUser: function (udata, dArray) {
+                 reset_PasswordUser: function (udata, d) {
                      var resetPasswordAjax = makeAjaxFunction (
                          "php/resetPasswordUser.php", 
-                         {id: dArray[0].id}, 
+                         {id: d.id}, 
                          getMsg ("emailInvalid"),
                          function () {}
                      );
