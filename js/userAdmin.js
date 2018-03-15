@@ -550,10 +550,14 @@ var CLMSUI = (function (mod) {
 
 
              var perUserActions = {
-                 updateUser: function (udata, dArray, optionLists) {    // userdata should be arg for safety sake
+                 updateUser: function (udata, d, optionLists) {    // userdata should be arg for safety sake
                      var jsonObj = {id: udata[0].id};   // overwritten by actual user id if superuser
-                     dArray.forEach (function(d) {
-                         jsonObj[d.key] = d.value;
+					 // if normal user then udata has only one entry, so udata[0].id must be user id
+					 
+                     d3.entries(d).forEach (function (entry) {
+						 if (entry.key !== "originalData") {
+                         	jsonObj[entry.key] = entry.value;
+						 }
                      });
                      var removingOwnSuperuserStatus = areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj);
 
@@ -563,9 +567,8 @@ var CLMSUI = (function (mod) {
                          getMsg("userDatabaseUpdateCatchall"),
                          function () { 
                              //console.log ("updated obj", jsonObj);
-                            dArray.forEach (function(d) {
-                                d.originalData = d.value;
-                            });
+							delete d.originalData;
+                            d.originalData = d.value;
                             if (removingOwnSuperuserStatus) {
                                 // This is easier than trying to persude DataTables to reveal the original rows in the table and remove them
                                 location.reload();
@@ -578,7 +581,7 @@ var CLMSUI = (function (mod) {
                                 removeRows (otherUserIDs, udata);
                                 */
                             } else {
-                                signalContentChangeRow (dArray[0].id, buttonEnablingLogic);
+                                signalContentChangeRow (d.id, buttonEnablingLogic);
                                  //makeIndTable (tableSettings.users);
                             }
                          }

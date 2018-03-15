@@ -210,7 +210,7 @@ tbody tr td.changedValue {
 */
 table .ms-parent {
 	position: absolute;
-	/*margin-top: -1em;*/
+	margin-top: -1em;
 }
 
 u {    
@@ -224,12 +224,23 @@ u {
 
 TABLE.d3table th.fitMultipleSelect, TABLE.d3table td.fitMultipleSelect {
 	min-width: 200px;
+	width: 280px;
 }
 
 table.d3table {
 	font-size: 1em;
+	table-layout: auto
 }
 
-table.d3table tr {
-	height: 2em;
+
+table.d3table tr th, table.d3table tbody tr td {
+	vertical-align: middle;
+}
+
+table.d3table th span {
+	margin: 0 0.5em;
+}
+
+.flex-header input.filterInput {
+	width: 50px
 }
