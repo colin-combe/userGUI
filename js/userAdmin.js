@@ -10,7 +10,7 @@ var CLMSUI = (function (mod) {
                 console.log = function () {};
             };
         })(console.log);
-        //console.disableLogging();
+        console.disableLogging();
 
         var errorDateFormat = d3.time.format ("%-d-%b-%Y %H:%M:%S %Z");
         var spinner = new Spinner ({
@@ -507,7 +507,7 @@ var CLMSUI = (function (mod) {
 
 
              var perUserActions = {
-                 updateUser: function (d, optionLists) {    // userdata should be arg for safety sake
+                 updateUser: function (d, optionLists) {
                      var jsonObj = {};
                      d3.entries(d).forEach (function (entry) {
 						 if (entry.key !== "originalData") {
@@ -527,14 +527,6 @@ var CLMSUI = (function (mod) {
                             if (removingOwnSuperuserStatus) {
                                 // This is easier than trying to persude DataTables to reveal the original rows in the table and remove them
                                 location.reload();
-                                /*
-                                isSuperUser = false;
-                                var otherUserIDs = udata
-                                    .map(function(uDatum) { return uDatum.id; })
-                                    .filter(function(uid) { return uid !== userId; })
-                                ;
-                                removeRows (otherUserIDs, udata);
-                                */
                             } else {
                                 signalContentChangeRow (d.id, buttonEnablingLogic);
                             }
