@@ -58,17 +58,6 @@ H3 {
     word-wrap: break-word;
 }
 
-
-.previousTable {
-    table-layout: auto;
-}
-
-.previousTable td, .previousTable th {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
 .varWidthCell {
    min-width: 2em;
    max-width: 5em;
@@ -129,14 +118,29 @@ H3 {
 td span[contenteditable=true] {
     min-width: 5em;
     min-height: 1.4em;
-    border: 1px solid transparent;
-    border-bottom: 1px dotted #88b;
+    border: 2px solid transparent;
     display: inline-block;
     padding: 0 0.2em;
 }
 
+td span[contenteditable=true], .underlined {
+	border-bottom: 2px dotted #88b;
+}
+
 td span[contenteditable=true]:hover {
-     border: 1px dotted #448;
+     border: 2px dotted #448;
+}
+
+tr span.ui-icon-pencil {
+	display: none;
+}
+
+tr:hover span[contenteditable=true] {
+	background: #fff;
+}
+
+tr:hover span.ui-icon-pencil {
+	display: inline-block;
 }
 
 
@@ -158,16 +162,8 @@ th, td input {
     text-transform: capitalize;
 }
 
-table tr {
+table tr, TABLE.d3table tbody tr td {
     color: #444;
-}
-
-table tbody tr.odd {
-    background: #f8f8f8;
-}
-
-table tbody tr.isUser {
-    background: #ffd;
 }
 
 table tr input[disabled], button.ms-choice.disabled span {
@@ -213,23 +209,20 @@ table .ms-parent {
 	margin-top: -1em;
 }
 
-u {    
-    border-bottom: 1px dotted #000;
-    text-decoration: none;
-}
-
 #username {
     text-transform: capitalize;
 }
 
 TABLE.d3table th.fitMultipleSelect, TABLE.d3table td.fitMultipleSelect {
-	min-width: 200px;
+	min-width: 230px;
 	width: 280px;
 }
 
 table.d3table {
 	font-size: 1em;
-	table-layout: auto
+	table-layout: auto;
+	border-collapse: separate;
+	border-spacing: 0;
 }
 
 
@@ -241,6 +234,10 @@ table.d3table th span {
 	margin: 0 0.5em;
 }
 
-.flex-header input.filterInput {
-	width: 50px
+table tbody tr:nth-child(odd) {
+	background: #f4f4f4;
+}
+
+table tbody tr.isUser {
+    background: #ffd;
 }

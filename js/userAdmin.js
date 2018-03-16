@@ -22,30 +22,8 @@ var CLMSUI = (function (mod) {
 
         // Stuff that can be done before any php/database shenanigans
         function canDoImmediately () {
-
             // http://stackoverflow.com/questions/3519665/disable-automatic-url-detection-for-elements-with-contenteditable-flag-in-ie
             document.execCommand ("AutoUrlDetect", false, false); // This stops IE9+ auto-linking emails in contenteditable areas
-
-            // add function to datatables for sorting columns of checkboxes by checked or not
-            $.fn.dataTable.ext.order['dom-checkbox'] = function ( settings, col ) {
-                return this.api().column(col, {order:'index'}).nodes().map (function (td) {
-                    return $('input', td).prop('checked') ? '1' : '0';
-                });
-            };
-
-            // add function to datatables for sorting columns of buttons by disabled or not
-            $.fn.dataTable.ext.order['disabled-button'] = function ( settings, col ) {
-                return this.api().column(col, {order:'index'}).nodes().map (function (td) {
-                    return $('input', td).prop('disabled') ? '1' : '0';
-                });
-            };
-
-            // this accommodates carat to caret spelling change in JQuery-UI 1.12.4
-            var JUIClassEntries = d3.entries($.fn.dataTable.ext.oJUIClasses);
-            JUIClassEntries.forEach (function (JUIClassEntry) {
-                $.fn.dataTable.ext.oJUIClasses[JUIClassEntry.key] = JUIClassEntry.value.replace ("-carat-", "-caret-");
-            });
-
         }
         canDoImmediately();
 
@@ -91,6 +69,22 @@ var CLMSUI = (function (mod) {
          function template (msg, data) {
              return msg.replace(/(?:\$)([0-9])/g, function (rawMatch, match, token) { return data[match-1]; });
          }
+		
+		function fillInMissingFields (data) {
+			var replacements = {
+				email: "",
+				delete: false
+			};
+			var replacementEntries = d3.entries (replacements);
+			data.forEach (function (userDatum) {
+				replacementEntries.forEach (function (rentry) {
+					var userVal = userDatum[rentry.key];
+					if (userVal === undefined || userVal === null) {
+						userDatum[rentry.key] = rentry.value;
+					}
+				})
+			});
+        }
 
 
          // Upon document being ready run this function to load in data
@@ -129,6 +123,7 @@ var CLMSUI = (function (mod) {
                     getMsg ("databaseConnectError"),
                     function (response) {
                         d3.select("#username").text(response.username);
+						fillInMissingFields (response.data);
                         var buttonEnabling = {
                             filters: {
                                 isSuperUser: response.superuser,
@@ -138,7 +133,7 @@ var CLMSUI = (function (mod) {
                             },
                             tests: {
                                 // delete enabled if value is false
-                                delete: function (dArray) { console.log ("darray", dArray); return !truthy(dArray[0].value[dArray[0].key]); },
+                                delete: function (dArray) { return !truthy(dArray[0].value[dArray[0].key]); },
                                 // password resetting allowed if valid email and user group
                                 reset_Password: function (dArray) {
                                     return dArray.every (function (d) { 
@@ -151,12 +146,10 @@ var CLMSUI = (function (mod) {
                                     var enabled = dArray.some (function (d) {
                                         return !equals(d);
                                     });     
-									console.log ("enabled", enabled);
                                     // and are these new values valid?
                                     enabled &= dArray.every (function (d) { 
                                         return isDatumValid (d, isSuperUser);
                                     });
-									console.log ("enabled2", enabled);
                                     return enabled;
                                 },
                             }
@@ -175,51 +168,26 @@ var CLMSUI = (function (mod) {
         function d3SelectParent (elem) {
             return d3.select (elem.parentNode);
         }
+		
+		function selectRowByID (rowID) {
+			return d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === rowID; })
+		}
 
         function truthy (val) {
             return val === "t" || val === "y" || val === true;
         }
 
-        function makeMapFromArray (obj, keyField) {
-            return d3.map (obj, function(entry) { return entry[keyField]; });
-        }
-
-        function getIndicesOf (typeOrder, types, keys, values) {
-            var indices = [];
-            typeOrder.forEach (function (type, i) {
-                if ((keys && keys.indexOf(type) >= 0) || (values && values.indexOf (types[type]) >= 0)) {
-                    indices.push(i);
-                }
-            });
-            return indices;
-        }
-
+		
         function equals (d) {
-			console.log ("dddddd", d);
 			var dv = d.value[d.key];
 			var dov = d.value.originalData[d.key];
             if ($.isArray(dv) && $.isArray(dov)) {
                 return $(dv).not(dov).length === 0 && $(dov).not(dv).length === 0;
             }
             return dv === dov;
-        }
-
-        function indicateChangedValues (sel) {
-            sel = sel || d3.selectAll("table tbody").selectAll("td");
-            sel.classed ("changedValue", function(d) { return !equals (d); });
-        }
-
-        function fillInMissingFields (row, types) {
-            var fieldArray = d3.entries (types);
-                fieldArray.forEach (function (field) {
-                if (row[field.key] === undefined || row[field.key] === null) {
-                    row[field.key] = (field.value === "text") ? "" : false;
-                }    
-            });
-        }
+		}
 
         function isDatumValid (d, isSuperUser) {
-			console.log ("dvalid", d);
             var reg = CLMSUI.regExpPatterns[d.key];
             return !reg || reg.test(d.value[d.key] || "") || (isSuperUser && !d.value[d.key]);    // superusers can enter empty values
         }
@@ -233,17 +201,14 @@ var CLMSUI = (function (mod) {
         function enableButton (rowData, columnName, buttonEnablingLogic) {
             var filters = buttonEnablingLogic.filters;
             var tests = buttonEnablingLogic.tests;
-			var rowid = rowData.id;
 
             // get correct row for id
-            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === rowid; }).selectAll("td");
+            var d3Sel = selectRowByID(rowData.id).selectAll("td");
 			var cellData = d3Sel.data();
 			
 			var testData = cellData.filter (function(d) { return filters[columnName].has (d.key); });
             // run a test on these column values
-			console.log ("td", rowData, testData, cellData, d3Sel, columnName, filters[columnName]);
             var enabled = tests[columnName](testData, filters.isSuperUser);
-			console.log ("column", columnName, enabled);
 
             d3Sel
                 .filter(function(d) { return d.key === columnName; })   // filter to right button
@@ -259,19 +224,18 @@ var CLMSUI = (function (mod) {
                 d3.select(this).classed("invalid", invalid);
             });
         }
-
-        function signalContentChange (d, buttonEnablingLogic) {
-            d.value[d.key] = d3.select(this).text();
-            indicateValidValues (d3.select(this));
-            indicateChangedValues (d3SelectParent(this));   // up to td not span element
-			console.log ("scc", d);
-            enableButton (d.value, "update", buttonEnablingLogic);
+		
+		function indicateChangedValues (sel) {
+            sel = sel || d3.selectAll("table tbody").selectAll("td");
+            sel.classed ("changedValue", function(d) { return !equals (d); });
         }
 
-        // Used when entire row content check needs done i.e. after database update
-        function signalContentChangeRow (id, buttonEnablingLogic) {
-            var d3Sel = d3.select("#userTable tbody").selectAll("tr").filter(function(d) { return d.id === id; });
-            setRowIndicators (d3Sel, buttonEnablingLogic);
+        function signalContentChangeCell (singleCellSel, buttonEnablingLogic) {
+			var d = singleCellSel.datum();
+            d.value[d.key] = singleCellSel.text();
+            indicateValidValues (singleCellSel);
+            indicateChangedValues (d3SelectParent(singleCellSel.node()));   // up to td not span element
+            enableButton (d.value, "update", buttonEnablingLogic);
         }
 
         function setRowIndicators (singleRowSelection, buttonEnablingLogic) {
@@ -280,6 +244,11 @@ var CLMSUI = (function (mod) {
             enableButton (d, "update", buttonEnablingLogic);
             enableButton (d, "delete", buttonEnablingLogic);
             enableButton (d, "reset_Password", buttonEnablingLogic);
+        }
+		
+		// Used when entire row content check needs done i.e. after database update
+        function signalContentChangeRow (id, buttonEnablingLogic) {
+            setRowIndicators (selectRowByID (id), buttonEnablingLogic);
         }
 
 
@@ -362,10 +331,7 @@ var CLMSUI = (function (mod) {
 			}
 			 
 			 function enableCells (rowSel) {
-				 rowSel.each (function (d, i) {
-					 console.log ("row", d3.select(this));
-					 setRowIndicators (d3.select(this), buttonEnablingLogic);
-				 })	
+				 rowSel.each (function (d) { setRowIndicators (d3.select(this), buttonEnablingLogic); })	
 			 }
 			 
 			 var columnMetaData = [
@@ -375,8 +341,8 @@ var CLMSUI = (function (mod) {
 				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: true, id: "user_group"},
 				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: true, id: "email"},
 				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: true, id: "update"},
-				{name: "Reset Password", type: "boolean", tooltip: "", visible: true, removable: true, id: "reset_Password"},
-				{name: "Delete", type: "boolean", tooltip: "", visible: true, removable: true, id: "delete"},
+				{name: "Reset Password", type: "none", tooltip: "", visible: true, removable: true, id: "reset_Password"},
+				{name: "Delete", type: "none", tooltip: "", visible: true, removable: true, id: "delete"},
 			];
 			 
 			 var headerEntries = columnMetaData.map (function (cmd) {
@@ -386,79 +352,77 @@ var CLMSUI = (function (mod) {
 			 var buttonHook = function (sel) { 
 				var but = sel.select("button");
 				but.on ("click", function (d) {  
-					perUserActions[d.key+"User"](userData, d.value, {userGroup: groupTypeData});
+					perUserActions[d.key+"User"](d.value, {userGroup: groupTypeData});
 				 });
 				 $(but).button()
 				 but.each (function (d,i) {
-					 $(this).button(d.value[d.key] ? "disable" : "enable");
+					 $(this).button(truthy(d.value[d.key]) ? "disable" : "enable");
 				 });
 				 
 			 };
 
             var tableSettings = {
                 users: {domid: "#userTable", 
-                        data: userData, 
-						headerEntries: headerEntries,
-						modifiers: {
-							you: function (d) { return d.you ? "<span class='ui-icon ui-icon-person'></span>" : ""; },
-							user_group: function (d) { return "<select></select>"; },
-							email: function (d) { return "<span>"+d.email+"</span>"; },
-							update: function (d) { return "<button>Update</button>"; },
-							reset_Password: function (d) { return "<button>Reset Password</button>"; },
-							delete: function (d) { return "<button>Delete "+(userId === d.id ? " Me" : " User")+"</button>"; },
+					data: userData, 
+					headerEntries: headerEntries,
+					modifiers: {
+						you: function (d) { return d.you ? "<span class='ui-icon ui-icon-person'></span>" : ""; },
+						user_group: function (d) { return "<select></select>"; },
+						email: function (d) { return "<span>"+d.email+"</span><span class='ui-icon ui-icon-pencil'></span>"; },
+						update: function (d) { return "<button>Update</button>"; },
+						reset_Password: function (d) { return "<button>Reset Password</button>"; },
+						delete: function (d) { return "<button>Delete "+(userId === d.id ? " Me" : " User")+"</button>"; },
+					},
+					cellStyles: {user_group: "fitMultipleSelect"},
+					autoWidths: d3.set(["email"]),
+					cellD3Hooks: {
+						user_group: function (cellSel) {
+							var d = cellSel.datum();
+							var groupVals = d.value[d.key];
+							var readOnly = !isSuperUser;
+							cellSel.select("select")
+								.property ("disabled", readOnly)
+								.attr ("title", readOnly ? getMsg ("superuserRequired") : "")
+								.selectAll("option")
+									.data (groupTypeData, function(d) { return d.id; })
+									.enter()
+									.append("option")
+									.attr ("value", function(d) { return d.id; })
+									.property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
+									.text (function(d) { return stripUnderscores (d.name); })
+							;	
+
+							$(cellSel.select("select")).multipleSelect({ 
+								single: true,
+								placeholder: "User Type",
+								width: 200,
+								maxHeight: "100%",
+								onClick: function (obj) {
+									d.value[d.key] = [obj.value];  // replace the data value with the new value
+									indicateChangedValues (cellSel);   // up to td parent element
+									enableButton (d.value, "update", buttonEnablingLogic);
+								},
+							});
+
+							cellSel.select(".ms-drop").selectAll("li label")
+								.attr("title", function (d, i) {
+									return typeCapabilities (groupTypeData[i]);
+								})
+							;
 						},
-						cellStyles: {user_group: "fitMultipleSelect"},
-						autoWidths: d3.set(["email"]),
-						cellD3Hooks: {
-							user_group: function (cellSel) {
-								var d = cellSel.datum();
-								var groupVals = d.value[d.key];
-								console.log ("datum", cellSel.datum());
-								var readOnly = !isSuperUser;
-								cellSel.select("select")
-									.property ("disabled", readOnly)
-									.attr ("title", readOnly ? getMsg ("superuserRequired") : "")
-									.selectAll("option")
-										.data (groupTypeData, function(d) { return d.id; })
-										.enter()
-										.append("option")
-										.attr ("value", function(d) { return d.id; })
-										.property ("selected", function(d) { return groupVals.indexOf (d.id) >= 0; })
-										.text (function(d) { return stripUnderscores (d.name); })
-								;	
-								
-								$(cellSel.select("select")).multipleSelect({ 
-									single: true,
-									placeholder: "User Type",
-									width: 200,
-									maxHeight: "100%",
-									onClick: function (obj) {
-										console.log ("obj", obj, "d", d);
-										d.value[d.key] = [obj.value];  // replace the data value with the new value
-										indicateChangedValues (cellSel);   // up to td parent element
-										enableButton (d.value, "update", buttonEnablingLogic);
-									},
-								});
-								
-								cellSel.select(".ms-drop").selectAll("li label")
-									.attr("title", function (d, i) {
-										return typeCapabilities (groupTypeData[i]);
-									})
-								;
-							},
-							email: function (cellSel) {
-								cellSel
-									.select("span")
-									.attr("contenteditable", "true")
-									.on ("input", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-                            		.on ("keyup", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-                            		.on ("paste", function(d) { signalContentChange.call (this, d, buttonEnablingLogic); })
-								;
-							},
-							update: function (cellSel) { buttonHook (cellSel); },
-							delete: function (cellSel) { buttonHook (cellSel); },
-							reset_Password: function (cellSel) { buttonHook (cellSel); },
-						}
+						email: function (cellSel) {
+							cellSel
+								.select("span")
+								.attr("contenteditable", "true")
+								.on ("input", function(d) { signalContentChangeCell (d3.select(this), buttonEnablingLogic); })
+								.on ("keyup", function(d) { signalContentChangeCell (d3.select(this), buttonEnablingLogic); })
+								.on ("paste", function(d) { signalContentChangeCell (d3.select(this), buttonEnablingLogic); })
+							;
+						},
+						update: function (cellSel) { buttonHook (cellSel); },
+						delete: function (cellSel) { buttonHook (cellSel); },
+						reset_Password: function (cellSel) { buttonHook (cellSel); },
+					}
                 },
             };
 			 
@@ -510,6 +474,7 @@ var CLMSUI = (function (mod) {
 				});
 
 				table
+					.pageSize(10)
 					.typeSettings ("alphaArray", alphaArrayTypeSettings)
 					.filter(keyedFilters)
 					.orderKey("id")
@@ -523,14 +488,6 @@ var CLMSUI = (function (mod) {
 
 				table.update();
             }
-			
-             function removeRows (ids, udata) {
-                 udata = udata.filter (function (uDatum) {
-                    return ids.indexOf (uDatum.id) < 0; 
-                 });
-                 tableSettings.users.data = udata;
-                 makeIndTable (tableSettings.users);
-             }
 
              // Beware
              function areYouRemovingOwnSuperuserStatus (isSuperUser, jsonObj, optionLists) {
@@ -550,10 +507,8 @@ var CLMSUI = (function (mod) {
 
 
              var perUserActions = {
-                 updateUser: function (udata, d, optionLists) {    // userdata should be arg for safety sake
-                     var jsonObj = {id: udata[0].id};   // overwritten by actual user id if superuser
-					 // if normal user then udata has only one entry, so udata[0].id must be user id
-					 
+                 updateUser: function (d, optionLists) {    // userdata should be arg for safety sake
+                     var jsonObj = {};
                      d3.entries(d).forEach (function (entry) {
 						 if (entry.key !== "originalData") {
                          	jsonObj[entry.key] = entry.value;
@@ -568,7 +523,7 @@ var CLMSUI = (function (mod) {
                          function () { 
                              //console.log ("updated obj", jsonObj);
 							delete d.originalData;
-                            d.originalData = d.value;
+                            d.originalData = $.extend({}, d);
                             if (removingOwnSuperuserStatus) {
                                 // This is easier than trying to persude DataTables to reveal the original rows in the table and remove them
                                 location.reload();
@@ -582,7 +537,6 @@ var CLMSUI = (function (mod) {
                                 */
                             } else {
                                 signalContentChangeRow (d.id, buttonEnablingLogic);
-                                 //makeIndTable (tableSettings.users);
                             }
                          }
                      );
@@ -593,7 +547,7 @@ var CLMSUI = (function (mod) {
                      }
                  },
 
-                 deleteUser: function (udata, d) {
+                 deleteUser: function (d) {
                      var deletingID = d.id;
                      var selfDelete = deletingID == userId;
 
@@ -606,14 +560,13 @@ var CLMSUI = (function (mod) {
                             d.originalData.delete = true;
                             d.originalData.email = "";
                             selfDelete ? window.location.replace (getMsg ("xiLogoutURL")) : signalContentChangeRow (deletingID, buttonEnablingLogic);
-                            // signalContentChange was previously removeRows ([deletingID], udata)
                          }
                      );
 
                      CLMSUI.jqdialogs.areYouSureDialog ("popErrorDialog", getMsg(selfDelete ? "clientDeleteYourself" : "clientDeleteUser"), getMsg("pleaseConfirm"), getMsg("proceedDelete"), getMsg("cancel"), deleteUserAjax);
                  },
 
-                 reset_PasswordUser: function (udata, d) {
+                 reset_PasswordUser: function (d) {
                      var resetPasswordAjax = makeAjaxFunction (
                          "php/resetPasswordUser.php", 
                          {id: d.id}, 
