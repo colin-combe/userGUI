@@ -219,10 +219,7 @@ var CLMSUI = (function (mod) {
 
         function indicateValidValues (sel, isSuperUser) {
             sel = sel || d3.selectAll("table tbody").selectAll("td");
-            sel.each (function(d) {
-                var invalid = !isDatumValid (d, isSuperUser);
-                d3.select(this).classed("invalid", invalid);
-            });
+			sel.classed ("invalid", function(d) { return !isDatumValid (d, isSuperUser); });
         }
 		
 		function indicateChangedValues (sel) {
@@ -267,7 +264,7 @@ var CLMSUI = (function (mod) {
             } else if (obj.see_all != undefined) {
                 desc.push (getMsg ("ownSearchesOnly"));
             }
-            return desc.join(", ");
+            return desc.join(". ");
         }
 
         function stripUnderscores (d) {
@@ -338,10 +335,10 @@ var CLMSUI = (function (mod) {
 				{name: "ID", type: "numeric", tooltip: "", visible: isSuperUser, removable: true, id: "id"},
 				{name: "You", type: "boolean", tooltip: "", visible: isSuperUser, removable: true, id: "you"},
 				{name: "User Name", type: "alpha", tooltip: "", visible: true, removable: false, id: "user_name"},
-				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: true, id: "user_group"},
-				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: true, id: "email"},
-				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: true, id: "update"},
-				{name: "Reset Password", type: "none", tooltip: "", visible: true, removable: true, id: "reset_Password"},
+				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: false, id: "user_group"},
+				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: false, id: "email"},
+				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: false, id: "update"},
+				{name: "Reset Password", type: "none", tooltip: "", visible: true, removable: false, id: "reset_Password"},
 				{name: "Delete", type: "none", tooltip: "", visible: true, removable: true, id: "delete"},
 			];
 			 
@@ -460,12 +457,10 @@ var CLMSUI = (function (mod) {
 					})
 				;
 				
-				var modifiers = tableSetting.modifiers;
-				
 				var table = CLMSUI.d3Table ();
 				table (d3tab);
 				applyHeaderStyling (table.getHeaderCells(), tableSetting.autoWidths, tableSetting.cellStyles);
-				console.log ("table", table);
+				//console.log ("table", table);
 
 				// set initial filters
 				var keyedFilters = {};
@@ -475,18 +470,18 @@ var CLMSUI = (function (mod) {
 
 				table
 					.pageSize(10)
-					.typeSettings ("alphaArray", alphaArrayTypeSettings)
+					.typeSettings ("alphaArray", alphaArrayTypeSettings)	// extra type
 					.filter(keyedFilters)
 					.orderKey("id")
+					.orderDir("desc")
 					.sort()
-					.dataToHTML (modifiers)
+					.dataToHTML (tableSetting.modifiers)
 					.postUpdate (function (rowSel) {
 						highlightRows (rowSel);
 						enableCells (rowSel);
 					})
+					.update();
 				;
-
-				table.update();
             }
 
              // Beware
