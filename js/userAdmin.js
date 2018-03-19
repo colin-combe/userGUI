@@ -354,9 +354,9 @@ var CLMSUI = (function (mod) {
 				 $(but).button()
 				 but.each (function (d,i) {
 					 $(this).button(truthy(d.value[d.key]) ? "disable" : "enable");
-				 });
-				 
-			 };
+				 });	 
+			};
+			 
 
             var tableSettings = {
                 users: {domid: "#userTable", 
