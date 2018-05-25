@@ -6,6 +6,8 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Restrict IPs of computers that can access registration page
 <Files userReg.html>
     # Edinburgh and Berlin
-    Require ip 129.215 130.149 ::1
+	Require all denied
+	Require ip 130.149
+    Require ip 129.215
 </Files>
 
