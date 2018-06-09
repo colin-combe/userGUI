@@ -33,11 +33,11 @@
 
       <link rel="stylesheet" href="../xi3/css/common.css" />
       <link rel="stylesheet" href="css/login.css" />
-      
-      <script type="text/javascript" src="./vendor/js/zepto.js"></script>
+
+      <script type="text/javascript" src="./../vendor/js/zepto.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
-    
+
   <body>
 
 	<header>
@@ -60,16 +60,16 @@
               <input type="password" value="" placeholder="Password" id="login-pass" name="login-pass" required/>
               <span class="error2"></span>
             </div>
-              
+
             <input name="Submit" value="Login To Xi" type="submit" class="btn btn-1a"/>
           </form>
-        
+
         <hr class="wideDivider">
         <h3>Forgotten Password?</h3>
         <form id="reset_password_form" name="reset_password_form" action="./userRequestPassword.html">
             <input name="Submit" value="Reset Password" type="submit" class="btn btn-1a"/>
         </form>
-        
+
         <div class="newUserSection">
             <hr class="wideDivider">
             <h3>New User?</h3>
@@ -78,7 +78,7 @@
             </form>
         </div>
 
-        <script type="text/javascript"> 
+        <script type="text/javascript">
             $(document).ready(function(e) {
                 $.when (
                     $.getJSON("./json/config.json"),
@@ -96,13 +96,13 @@
                             cache: false,
                             timeout:1000,
                             error: function (jqXHR, textStatus) {
-                                //alert("Request failed: " + textStatus ); 
+                                //alert("Request failed: " + textStatus );
                             },
                             success: function () {
-                                $(".newUserSection").css("display", "block");   
+                                $(".newUserSection").css("display", "block");
                             }
-                        });       
-                     }    
+                        });
+                     }
                      checkConnection("./userReg.html"); // show new user section if reg page is reachable
 
                      var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
