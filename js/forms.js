@@ -45,12 +45,37 @@ var CLMSUI = (function (mod) {
                     }
                 },
                 error: function (jqXhr, textStatus, errorThrown) {
-                    console.log ("error args", arguments); // some other error chucked by php
+					$("#msg").html("Server side error: "+jqXhr.responseText+".<br>Please contact Xi Administrator.");
                 },
                 complete: function () {
                     if (doneFunc) {
                         doneFunc ();
                     }
+                }
+            });
+        },
+		
+		simpleAjaxPost: function (ajaxSetup, prepostData, doneFunc) {
+            // grab form input field values and put them in a json obj
+            var json = prepostData || {};
+            json.redirect = document.referrer;
+            console.log ("json", json);
+
+            $.ajax ({
+                type: ajaxSetup.method || "GET",
+                url: ajaxSetup.url,
+                data: json,
+                dataType: "json",
+                encode: true,
+                success: function (data, status, xhr) {
+                    if (doneFunc) {
+                        doneFunc ();
+                    }
+                },
+                error: function (jqXhr, textStatus, errorThrown) {
+					$("#msg").html("Server side error: "+jqXhr.responseText+".<br>Please contact Xi Administrator.");
+                },
+                complete: function () {
                 }
             });
         },

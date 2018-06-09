@@ -1,4 +1,6 @@
 <?php
+	use PHPMailer\PHPMailer\PHPMailer;	// https://github.com/PHPMailer/PHPMailer/blob/master/UPGRADING.md#namespace
+
     // from http://stackoverflow.com/questions/2021624/string-sanitizer-for-filename
     function normalizeString($str = '') {
         $str = filter_var($str, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
@@ -172,8 +174,8 @@
 
     function sendPasswordResetMail ($email, $id, $userName, $count, $dbconn) {
         include ('../../../xi_ini/emailInfo.php');
-        require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
-        require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
+        require_once    ('../vendor/php/PHPMailer-master/src/PHPMailer.php');
+        require_once    ('../vendor/php/PHPMailer-master/src/SMTP.php');
         
         //error_log (print_r ($email, true));
         
