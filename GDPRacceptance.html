@@ -33,13 +33,13 @@
 
       <link rel="stylesheet" href="../xi3/css/common.css" />
       <link rel="stylesheet" href="css/login.css" />
-      <link rel="stylesheet" href="vendor/css/example.wink.css" />
-      
-      <script type="text/javascript" src="./vendor/js/jquery-3.3.1.js"></script>
-      <script type="text/javascript" src="vendor/js/hideShowPassword.js"></script>
+      <link rel="stylesheet" href="../vendor/css/example.wink.css" />
+
+      <script type="text/javascript" src="./../vendor/js/jquery-3.3.1.js"></script>
+      <script type="text/javascript" src="../vendor/js/hideShowPassword.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
-    
+
   <body>
 
 	<header>
@@ -51,17 +51,17 @@
 
         <p id="msg"></p>
 
-        <script type="text/javascript"> 
+        <script type="text/javascript">
             $(document).ready (function() {
                 $.getJSON("./json/msgs.json", function (msgs) {
                     CLMSUI.loginForms.msgs = msgs;
                     CLMSUI.loginForms.makeFooter();
                     CLMSUI.loginForms.makeHelpButton();
-                    
+
                     var passwordValidationMsg = CLMSUI.loginForms.getMsg("clientPasswordValidationInfo");
                     $("#new-login-pass").attr("oninvalid", "this.setCustomValidity('"+passwordValidationMsg+"')");
                     $("#pass-errorMsg").text("< "+passwordValidationMsg);
-            
+
                     // https://css-tricks.com/snippets/javascript/get-url-variables/
                     function getQueryVariable (variable)  {
                        var query = window.location.search.substring(1);
@@ -71,16 +71,16 @@
                             if(pair[0] == variable){return pair[1];}
                        }
                        return false;
-                    } 
-					
+                    }
+
 					CLMSUI.loginForms.simpleAjaxPost (
-						{method: "POST", url: "php/GDPRacceptance.php"}, 
+						{method: "POST", url: "php/GDPRacceptance.php"},
 						{token: getQueryVariable("gdpr_token")},
 						function () { $("#msg").html(CLMSUI.loginForms.getMsg("GDPRacceptance")); }
 					)
                 });
             });
-            
+
         </script>
     </div>
 
