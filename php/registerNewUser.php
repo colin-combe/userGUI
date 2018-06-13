@@ -1,7 +1,7 @@
 <?php
 include ('../../connectionString.php');
 include ('../../../xi_ini/emailInfo.php');
-include ('utils.php');
+include ('../../vendor/php/utils.php');
 
 try {
     //error_log (print_r ($_POST, true));   // This printed passwords in plain text to the php log. Lol.
