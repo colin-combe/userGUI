@@ -1,15 +1,14 @@
-
         <div class="login">
 
-              <form id="register_form" name="register_form" method="post" action="./php/registerNewUser.php" class="login-form">
-                  
+              <form id="register_form" name="register_form" method="post" action="../userGUI/php/registerNewUser.php" class="login-form">
+
                 <div class="control-group">
                     <label for="email">Pick Username</label>
                     <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" required autofocus/>
                     <span class="error" id="username-errorMsg"></span>
                     <span class="error2"></span>
                 </div>
-                  
+
                 <div class="control-group">
                     <label for="email">Email Address</label>
                     <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="" required/>
@@ -24,19 +23,19 @@
                     <input type="checkbox" id="show-password">
                     <label for="show-password">Show password</label>
                 </div>
-                  
+
                 <div id="recaptchaWidget" data-sitekey="getFromConfig.json"></div>
                 <span class="error">&lt; Please check the captcha form</span>
                 <br/>
-                  
+
                 <input name="Submit" value="Create My Xi Account" type="submit" class="btn btn-1a"/>
 
               </form>
-            
+
             <div id="spinBox"></div>
             <div id="msg"></div>
 
-            <script type="text/javascript"> 
+            <script type="text/javascript">
                 //$(document).ready(function(e) {
                 var onloadCallback = function () {
                     $.when (
@@ -84,6 +83,6 @@
                 }
                 //});
             </script>
-            
+
             <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
         </div>

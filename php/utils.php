@@ -1,4 +1,6 @@
 <?php
+	use PHPMailer\PHPMailer\PHPMailer;	// https://github.com/PHPMailer/PHPMailer/blob/master/UPGRADING.md#namespace
+
     // from http://stackoverflow.com/questions/2021624/string-sanitizer-for-filename
     function normalizeString($str = '') {
         $str = filter_var($str, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
@@ -23,9 +25,9 @@
         $result = pg_execute ($dbconn, "user_rights", [$userID]);
         $row = pg_fetch_assoc ($result);
         //error_log (print_r ($row, true));
-        
-        $canSeeAll = (isset($row["see_all"]) && $row["see_all"] === 't');  // 1 if see_all flag is true or if that flag doesn't exist in the database 
-        $canAddNewSearch = (isset($row["can_add_search"]) && $row["can_add_search"] === 't');  // 1 if can_add_search flag is true or if that flag doesn't exist in the database 
+
+        $canSeeAll = (isset($row["see_all"]) && $row["see_all"] === 't');  // 1 if see_all flag is true or if that flag doesn't exist in the database
+        $canAddNewSearch = (isset($row["can_add_search"]) && $row["can_add_search"] === 't');  // 1 if can_add_search flag is true or if that flag doesn't exist in the database
         $isSuperUser = (isset($row["super_user"]) && $row["super_user"] === 't');  // 1 if super_user flag is present AND true
         $maxAAs = 0; //isset($row["max_aas"]) ? (int)$row["max_aas"] : 0;   // max aas and spectra now decided by user groups table
         $maxSpectra = 0; //isset($row["max_spectra"]) ? (int)$row["max_spectra"] : 0;
@@ -33,7 +35,7 @@
         $maxSearchLifetime = 1000;
         $maxSearchesPerDay = 100;
         $searchDenyReason = null;
-        
+
         if (doesColumnExist ($dbconn, "user_groups", "max_aas")) {
             pg_prepare($dbconn, "user_rights2", "SELECT max(user_groups.max_search_count) as max_search_count, max(user_groups.max_spectra) as max_spectra, max(user_groups.max_aas) as max_aas, max(user_groups.search_lifetime_days) as max_search_lifetime, max(user_groups.max_searches_per_day) as max_searches_per_day,
             MAX(CAST(user_groups.see_all as INT)) AS see_all,
@@ -46,7 +48,7 @@
             $result = pg_execute ($dbconn, "user_rights2", [$userID]);
             $row = pg_fetch_assoc ($result);
             //error_log (print_r ($row, true));
-            
+
             $maxSearchCount = (int)$row["max_search_count"];
             $maxSearchLifetime = (int)$row["max_search_lifetime"];
             $maxSearchesPerDay = (int)$row["max_searches_per_day"];
@@ -54,8 +56,8 @@
             $maxSpectra = max($maxSpectra, (int)$row["max_spectra"]);
             $canSeeAll = $canSeeAll || ((!isset($row["see_all"]) || (int)$row["see_all"] === 1));
             $canAddNewSearch = $canAddNewSearch || (!isset($row["can_add_search"]) || (int)$row["can_add_search"] === 1);
-            $isSuperUser = $isSuperUser || (isset($row["super_user"]) && (int)$row["super_user"] === 1); 
-            
+            $isSuperUser = $isSuperUser || (isset($row["super_user"]) && (int)$row["super_user"] === 1);
+
             if ($canAddNewSearch) {
                 $userSearches = countUserSearches ($dbconn, $userID);
                 if ($maxSearchCount !== null && $userSearches >= $maxSearchCount) {
@@ -63,7 +65,7 @@
                     $searchDenyReason = "You already have ".$maxSearchCount." or more active searches. Consider hiding some of them to allow new searches.";
                 }
             }
-                  
+
             if ($canAddNewSearch) {
                 $userSearchesToday = countUserSearchesToday ($dbconn, $userID);
                 if ($maxSearchesPerDay !== null && $userSearchesToday >= $maxSearchesPerDay) {
@@ -75,7 +77,7 @@
             $maxAAs = max($maxAAs, 1000);
             $maxSpectra = max($maxSpectra, 1000000);
         }
-          
+
         return array ("canSeeAll"=>$canSeeAll, "canAddNewSearch"=>$canAddNewSearch, "isSuperUser"=>$isSuperUser, "maxAAs"=>$maxAAs, "maxSpectra"=>$maxSpectra, "maxSearchLifetime"=>$maxSearchLifetime, "maxUserSearches"=>$maxSearchCount, "maxUserSearchesToday"=>$maxSearchesPerDay, "searchDenyReason"=>$searchDenyReason);
     }
 
@@ -138,16 +140,17 @@
     }
 
     function validateCaptcha ($captcha) {
-        include ('../../../xi_ini/emailInfo.php');
-        
+        include ('../../xi_ini/emailInfo.php');
+
         $ip = $_SERVER['REMOTE_ADDR'];
         $response=file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secretRecaptchaKey."&response=".$captcha."&remoteip=".$ip);
         $responseKeys = json_decode($response,true);
-        //error_log (print_r ($responseKeys, true));
+        error_log (print_r ($responseKeys, true));
         if (intval($responseKeys["success"]) !== 1) {
             echo (json_encode(array ("status"=>"fail", "msg"=> getTextString("captchaError"), "revalidate"=> true)));
             exit;
-        } 
+        }
+		error_log (print_r ("captcha success"));
     }
 
     function makePhpMailerObj ($myMailInfo, $toEmail, $userName="User Name", $subject="Test Send Mails") {
@@ -165,18 +168,18 @@
         $mail->SetFrom($myMailInfo["account"], 'Xi');
         $mail->Subject    = $subject;
         $mail->AddAddress($toEmail, $userName);
-        
+
         // $mail->AddAttachment("images/phpmailer.gif");        // attachment
         return $mail;
     }
 
     function sendPasswordResetMail ($email, $id, $userName, $count, $dbconn) {
         include ('../../../xi_ini/emailInfo.php');
-        require_once    ('../vendor/php/PHPMailer-master/class.phpmailer.php');
-        require_once    ('../vendor/php/PHPMailer-master/class.smtp.php');
-        
+        require_once    ('../vendor/php/PHPMailer-master/src/PHPMailer.php');
+        require_once    ('../vendor/php/PHPMailer-master/src/SMTP.php');
+
         //error_log (print_r ($email, true));
-        
+
         if (strlen($email) > 2) {
             if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
 
@@ -198,7 +201,7 @@
 
                         if(!$mail->Send()) {
                             //error_log (print_r ("failsend", true));
-                        }   
+                        }
                     } else {
                         throw new Exception (getTextString("genDatabaseError"));
                     }

@@ -1,6 +1,14 @@
-<Files "./userReg.html">
-    Order deny,allow
-    Deny from all
+# Make sure login pages always go to https:
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Restrict IPs of computers that can access registration page
+<Files userReg.html>
     # Edinburgh and Berlin
-    Allow from 129.215 130.149 ::1
+	Require all denied
+	Require ip 130.149
+    Require ip 129.215
+	Require ip ::1
 </Files>
+
