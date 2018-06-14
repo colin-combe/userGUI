@@ -1,6 +1,6 @@
     <div class="login">
 
-          <form id="login_form" name="login_form" method="post" action="./php/checkLogin.php" class="login-form">
+          <form id="login_form" name="login_form" method="post" action="../userGUI/php/checkLogin.php" class="login-form">
             <div class="control-group">
                 <label for="login-name">Username</label>
                 <input type="text" value="" placeholder="Username" id="login-name" name="login-name" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" required autofocus/>
@@ -34,8 +34,8 @@
         <script type="text/javascript">
             $(document).ready(function(e) {
                 $.when (
-                    $.getJSON("./json/config.json"),
-                    $.getJSON("./json/msgs.json")
+                    $.getJSON("../userGUI/json/config.json"),
+                    $.getJSON("../userGUI/json/msgs.json")
                 ).done (function (configxhr, msgsxhr) {
                     var msgs = msgsxhr[0];
                     var config = configxhr[0];
