@@ -39,8 +39,8 @@
                 //$(document).ready(function(e) {
                 var onloadCallback = function () {
                     $.when (
-                        $.getJSON("./json/config.json"),
-                        $.getJSON("./json/msgs.json")
+                        $.getJSON("../userGUI/json/config.json"),
+                        $.getJSON("../userGUI/json/msgs.json")
                     ).done (function (configxhr, msgsxhr) {
                         var config = configxhr[0];
                         var msgs = msgsxhr[0];
