@@ -1,6 +1,6 @@
 <?php
 include ('../../connectionString.php');
-include ('../../xi_ini/emailInfo.php');
+include ('../../../xi_ini/emailInfo.php');
 include ('../../vendor/php/utils.php');
 
 try {
