@@ -26,7 +26,7 @@
         <div class="newUserSection">
             <hr class="wideDivider">
             <h3>New User?</h3>
-            <form id="new_user_form" name="new_user_form" action="./userReg.html">
+            <form id="new_user_form" name="new_user_form" action="./createAccount.php">
                 <input name="Submit" value="Create New Account" type="submit" class="btn btn-1a"/>
             </form>
         </div>
@@ -43,20 +43,20 @@
                     CLMSUI.loginForms.makeFooter();
                     CLMSUI.loginForms.makeHelpButton();
 
-                    function checkConnection (url) {
-                        $.ajax({
-                            url: url,
-                            cache: false,
-                            timeout:1000,
-                            error: function (jqXHR, textStatus) {
-                                //alert("Request failed: " + textStatus );
-                            },
-                            success: function () {
+                    // function checkConnection (url) {
+                    //     $.ajax({
+                    //         url: url,
+                    //         cache: false,
+                    //         timeout:1000,
+                    //         error: function (jqXHR, textStatus) {
+                    //             //alert("Request failed: " + textStatus );
+                    //         },
+                    //         success: function () {
                                 $(".newUserSection").css("display", "block");
-                            }
-                        });
-                     }
-                     checkConnection("./userReg.html"); // show new user section if reg page is reachable
+                     //        }
+                     //    });
+                     // }
+                     // checkConnection("./createAccount.php"); // show new user section if reg page is reachable
 
                      var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
                     $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");

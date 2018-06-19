@@ -1,7 +1,7 @@
 <?php
 ob_start();
 // http://stackoverflow.com/questions/18188716/warning-session-destroy-trying-to-destroy-uninitialized-session
-session_start(); 
+session_start();
 // http://stackoverflow.com/questions/3512507/proper-way-to-logout-from-a-session-in-php
 
 // Unset all of the session variables.
@@ -20,6 +20,6 @@ if (ini_get("session.use_cookies")) {
 // Finally, destroy the session.
 session_destroy();
 
-header("location:../userLogin.html");
+header("location:../../xiNET_website/login.php");
 ob_end_flush();
 ?>
