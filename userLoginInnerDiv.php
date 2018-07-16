@@ -19,7 +19,7 @@
 
         <hr class="wideDivider">
         <h3>Forgotten Password?</h3>
-        <form id="reset_password_form" name="reset_password_form" action="./userRequestPassword.html">
+        <form id="reset_password_form" name="reset_password_form" action="../userGUI/userRequestPassword.html">
             <input name="Submit" value="Reset Password" type="submit" class="btn btn-1a"/>
         </form>
 
