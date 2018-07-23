@@ -34,7 +34,7 @@
         "newUserEmailInfo": "New user $1 added. A confirmation email has been sent.",
         "newUserErrorCatchall": "An Error occurred when adding a new user to the database",
         "newUserEmailHeader": "Xi Registration",
-        "newUserEmailBody": "<p>You're now registered with Xi! Your account is set up but needs to be approved by an administrator for search privileges which can take up to 3 days. We thankyou for your patience.</p><p>In the meantime, please read the following text and click the following link to confirm your acceptance of our privacy settings.</p><H4>Xi Privacy Policy</H4><P>Xi only asks for and retains email addresses and no other personal data. Email addresses are used only for resetting passwords and not for marketing or bulk communication. The 'User Admin' functions, once you've logged in, will allow you to delete your account and email address. </P>If that's ok, then click this link: <A href='$1'>I Accept These Terms</A>",
+        "newUserEmailBody": "<p>A request has been recieved to register this email adress with xiVIEW.</p><p>Please read the following text and click the following link to confirm your acceptance of our privacy policy.</p><H4>Privacy Policy</H4><P>Xi only asks for and retains email addresses and no other personal data. Email addresses are used only for resetting passwords and not for marketing or bulk communication.</P>If that's ok, then click this link: <A href='$1'>I Accept These Terms</A>",
         
         "captchaError": "Captcha Failure",
 
