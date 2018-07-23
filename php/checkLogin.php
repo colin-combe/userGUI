@@ -28,12 +28,24 @@ try {
 		$date = date("d-M-Y H:i:s");
 
 		// if no username match
-		if ($count === 0) { 
+		if ($count === 0) {
 			echo (json_encode(array ("status"=>"fail", "msg"=>"< Incorrect Password / Username combination", "field"=>"login-name")));
 		}
 		// If result matched $myusername and $mypass, table row must be 1 row
 		else if ($count === 1 && password_verify ($mypass, $hash)) {
-			session_start();
+            // $get = pg_prepare($dbconn, "getGdprStatus", "SELECT gdpr_token FROM users WHERE user_name=$1");
+    		// $result = pg_execute($dbconn, "getGdprStatus", [$myusername]);
+    		// $line = pg_fetch_assoc($result);
+    		// $gdprStatus = $line["gdpr_token"];
+            // if () {
+            // }
+            // else {
+            //     $redirectTo = "./confirmationReminder.html";
+            //     //error_log (print_r ($redirectTo, true));
+            //     echo (json_encode(array ("status"=>"email confirmation required", "redirect"=> $redirectTo)));
+            // }
+
+        	session_start();
 			$_SESSION['session_name'] = $myusername;
 			$_SESSION['user_id'] = $user_id;
 			//$redirectTo = empty($_POST["redirect"]) ? "../history/history.html" : $_POST["redirect"];
