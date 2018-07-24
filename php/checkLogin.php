@@ -17,7 +17,7 @@ try {
 		$myusername = stripslashes($myusername);
 		$mypass = stripslashes($mypass);
 
-		$get = pg_prepare($dbconn, "getUserData", "SELECT password, id, gdpr_token FROM users WHERE user_name=$1");
+		$get = pg_prepare($dbconn, "getUserData", "SELECT password, id, gdpr_timestamp FROM users WHERE user_name=$1");
 		$result = pg_execute($dbconn, "getUserData", [$myusername]);
 		$line = pg_fetch_assoc($result);
 		$hash = $line["password"];
@@ -32,7 +32,7 @@ try {
 			echo (json_encode(array ("status"=>"fail", "msg"=>"< Incorrect Password / Username combination", "field"=>"login-name")));
 		}
         // if no gdpr_token
-		else if (!isset($line['gdpr_token'])) {
+		else if (!isset($line['gdpr_timestamp'])) {
 			    $redirectTo = "./confirmationReminder.html";
                 //error_log (print_r ($redirectTo, true));
                 echo (json_encode(array ("status"=>"email confirmation required", "redirect"=> $redirectTo)));    
