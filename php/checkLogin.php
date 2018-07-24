@@ -17,7 +17,7 @@ try {
 		$myusername = stripslashes($myusername);
 		$mypass = stripslashes($mypass);
 
-		$get = pg_prepare($dbconn, "getUserData", "SELECT password, id FROM users WHERE user_name=$1");
+		$get = pg_prepare($dbconn, "getUserData", "SELECT password, id, gdpr_token FROM users WHERE user_name=$1");
 		$result = pg_execute($dbconn, "getUserData", [$myusername]);
 		$line = pg_fetch_assoc($result);
 		$hash = $line["password"];
@@ -31,20 +31,14 @@ try {
 		if ($count === 0) {
 			echo (json_encode(array ("status"=>"fail", "msg"=>"< Incorrect Password / Username combination", "field"=>"login-name")));
 		}
+        // if no gdpr_token
+		else if (!isset($line['gdpr_token'])) {
+			    $redirectTo = "./confirmationReminder.html";
+                //error_log (print_r ($redirectTo, true));
+                echo (json_encode(array ("status"=>"email confirmation required", "redirect"=> $redirectTo)));    
+	    }
 		// If result matched $myusername and $mypass, table row must be 1 row
 		else if ($count === 1 && password_verify ($mypass, $hash)) {
-            // $get = pg_prepare($dbconn, "getGdprStatus", "SELECT gdpr_token FROM users WHERE user_name=$1");
-    		// $result = pg_execute($dbconn, "getGdprStatus", [$myusername]);
-    		// $line = pg_fetch_assoc($result);
-    		// $gdprStatus = $line["gdpr_token"];
-            // if () {
-            // }
-            // else {
-            //     $redirectTo = "./confirmationReminder.html";
-            //     //error_log (print_r ($redirectTo, true));
-            //     echo (json_encode(array ("status"=>"email confirmation required", "redirect"=> $redirectTo)));
-            // }
-
         	session_start();
 			$_SESSION['session_name'] = $myusername;
 			$_SESSION['user_id'] = $user_id;
@@ -55,12 +49,10 @@ try {
 		} else {
 			echo (json_encode(array ("status"=>"fail", "msg"=>"< Incorrect Password / Username combination", "field"=>"login-name")));
 		}
-		pg_query("COMMIT");
 	} else {
 		echo (json_encode(array ("status"=>"fail", "msg"=>"< One or both of Password / Username is missing", "field"=>"login-name")));
 	}
 } catch (Exception $e) {
-    pg_query("ROLLBACK");
     $msg = ($e->getMessage()) ? ($e->getMessage()) : "An error occurred when attempting to log in.";
     echo (json_encode(array ("status"=>"fail", "error"=> $msg."<br>".$date)));
 }

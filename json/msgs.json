@@ -34,8 +34,15 @@
         "newUserEmailInfo": "New user $1 added. A confirmation email has been sent.",
         "newUserErrorCatchall": "An Error occurred when adding a new user to the database",
         "newUserEmailHeader": "Xi Registration",
-        "newUserEmailBody": "<p>A request has been recieved to register this email adress with xiVIEW.</p><p>Please read the following text and click the following link to confirm your acceptance of our privacy policy.</p><H4>Privacy Policy</H4><P>Xi only asks for and retains email addresses and no other personal data. Email addresses are used only for resetting passwords and not for marketing or bulk communication.</P>If that's ok, then click this link: <A href='$1'>I Accept These Terms</A>",
-        
+        "newUserEmailBody": "<p>A request has been recieved to register this email adress with xiVIEW.</p><p>Please read the following text and click the following link to confirm your acceptance of our privacy policy.</p><H4>Privacy Policy</H4>
+                            <p>xiVIEW only asks for and retains email addresses and no other personal data. Email addresses are used only for resetting passwords and not for marketing or bulk communication.
+<br>Your uploaded data is kept private; we will not make use of your data or provide access to others.
+<br>We will use the number of user accounts and number of datasets uploaded when we report usage statistics.
+<br>Cookies are used to record that you have logged in, and, optionally, to store the configuration of the filters in the 'My Data' page.
+<br>This is a beta/development version of this website and logging is currently enabled on the web server, we will only use this for debugging purposes.
+</P>
+If that's ok, then click this link: <A href='$1'>I Accept These Terms</A>",
+
         "captchaError": "Captcha Failure",
 
         "clientNameValidationInfo": "Between 4 and 16 Alphanumeric characters only please",
