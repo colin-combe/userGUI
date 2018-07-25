@@ -11,7 +11,7 @@
 
                 <div class="control-group">
                     <label for="email">Email Address</label>
-                    <input type="email" value="" placeholder="email@address" id="email" name="email" pattern="" required/>
+                    <input type="email" value="" placeholder="email@address" id="email" name="email" required/>
                     <span class="error" id="email-errorMsg"></span>
                     <span class="error2"></span>
                 </div>
@@ -42,6 +42,7 @@
                         $.getJSON("../userGUI/json/config.json"),
                         $.getJSON("../userGUI/json/msgs.json")
                     ).done (function (configxhr, msgsxhr) {
+
                         var config = configxhr[0];
                         var msgs = msgsxhr[0];
                         CLMSUI.loginForms.msgs = msgs;

@@ -29,8 +29,10 @@ var CLMSUI = (function (mod) {
                             $("#msg").text(data.msg).addClass("backToBlack");
                         }
                     }
-                    else if (data.status === "fail") {    // say which field is wrong if login bad
-                        if (data.field) {
+                    else if (data.status !== "success") {    // say which field is wrong if login bad
+                        if (data.redirect) {    // redirect if login good
+                            window.location.assign (data.redirect);
+                        } else if (data.field) {
                              $("#"+data.field).siblings(".error2").css("display", "inline");
                             if (data.msg) {
                                 $("#"+data.field).siblings(".error2").text(data.msg);

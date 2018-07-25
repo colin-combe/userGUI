@@ -5,8 +5,6 @@ $dbconn = pg_connect($connectionString)or die("cannot connect");
 $date = date("d-M-Y H:i:s");
 
 try {
-    pg_query("BEGIN") or die("Could not start transaction\n");
-
     //error_log (print_r ($_POST, true));
     // Define $myusername and $mypass
 	if (isset($_POST['login-name'], $_POST['login-pass'])) {
@@ -33,7 +31,7 @@ try {
 		}
         // if no gdpr_token
 		else if (!isset($line['gdpr_timestamp'])) {
-			    $redirectTo = "./confirmationReminder.html";
+			    $redirectTo = "../xiNET_website/confirmationReminder.php";
                 //error_log (print_r ($redirectTo, true));
                 echo (json_encode(array ("status"=>"email confirmation required", "redirect"=> $redirectTo)));    
 	    }
