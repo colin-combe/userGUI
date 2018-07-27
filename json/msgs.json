@@ -7,7 +7,7 @@
         "tokenExpiredError": "Token has expired (2 hour limit). Please obtain a new email via the login page.",
         "tokenMismatchError": "Token not matched to any user, maybe overridden by a newer request or already used. Password update failed.",
         "passwordEmailCatchall": "An Error occurred when attempting to send a retrieve password email.",
-        "passwordResetSuccess": "Password reset complete. Thankyou.",
+        "passwordResetSuccess": "Password reset complete. Thank you.",
         "resetPasswordEmailInfo": "An email has been sent to the associated address. Use the link in the email within 2 hours to reset your password.",
         "passwordResetCatchall": "An Error occurred when resetting a password.",
         "resetPasswordEmailHeader": "Xi Password Reset",
@@ -53,7 +53,7 @@
         "proceedUpdate": "Proceed with Update",
         "cancel": "Cancel this Action",
 
-		"GDPRacceptance": "Thankyou, your acceptance of Xi's privacy terms has been noted",
+		"GDPRacceptance": "Thank you, your acceptance of Xi's privacy terms has been noted",
 
         "canAddSearches": "Can add up to $1 searches",
         "cannotAddSearches": "Cannot add new searches",
