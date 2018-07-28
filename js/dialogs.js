@@ -1,5 +1,5 @@
 var CLMSUI = (function (mod) {
-    
+
     mod.jqdialogs = {
         constructDialogMessage: function (dialogID, msg, title) {
             var dialogParas = d3.select("body").select("#"+dialogID);
@@ -19,7 +19,7 @@ var CLMSUI = (function (mod) {
         },
 
         errorDialog: function (dialogID, msg, title) {
-            msg = msg.concat("<br><A href='https://github.com/Rappsilber-Laboratory/' target='_blank'>Rappsilber Lab GitHub</A>");
+            msg = msg.concat("<br><A href='https://github.com/Rappsilber-Laboratory/xiView_container/issues' target='_blank'>Rappsilber Lab GitHub</A>");
             CLMSUI.jqdialogs.constructDialogMessage (dialogID, msg, title || "Database Error");
 
             $("#"+dialogID).dialog({
@@ -51,7 +51,7 @@ var CLMSUI = (function (mod) {
             });
         }
     };
-    
+
     return mod;
-    
+
 }(CLMSUI || {}));
