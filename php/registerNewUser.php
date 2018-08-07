@@ -7,15 +7,15 @@ try {
     //error_log (print_r ($_POST, true));   // This printed passwords in plain text to the php log. Lol.
 
     $config = json_decode (file_get_contents ("../json/config.json"), true);
-    
+
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
     $email = validatePostVar ("email", $config["emailRegex"], true);
     $username = validatePostVar ("username", '/^[a-zA-Z0-9-_.]{4,16}/');
     $pword = validatePostVar ("pass", '/.{6,}/');
-       
+
     // validate captcha
     validateCaptcha ($captcha);
-        
+
     $dbconn = pg_connect($connectionString);
     try {
         /* test if username already exists */
@@ -26,7 +26,7 @@ try {
             echo (json_encode(array ("status"=>"fail", "field"=> "username", "msg"=>getTextString("newUserUniqueNameError", [$username]), "revalidate"=> true)));
             exit;
         }
-        
+
         /* test if email already exists */
         pg_prepare ($dbconn, "doesEmailExist", "SELECT COUNT(email) FROM users WHERE email = $1;");
         $result = pg_execute($dbconn, "doesEmailExist", [$email]);
@@ -49,8 +49,8 @@ try {
         $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
         $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "12"]);
 
-		require_once    ('../vendor/php/PHPMailer-master/src/PHPMailer.php');
-		require_once    ('../vendor/php/PHPMailer-master/src/SMTP.php');
+		require_once    ('../../vendor/php/PHPMailer-master/src/PHPMailer.php');
+		require_once    ('../../vendor/php/PHPMailer-master/src/SMTP.php');
 
 		$url = $urlRoot."userGUI/GDPRacceptance.html?gdpr_token=".$gdpr_token;
 		$mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
@@ -60,7 +60,7 @@ try {
 			error_log (print_r ("failsend", true));
 			pg_query("ROLLBACK");
 			echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
-		} 
+		}
 		else {
 			pg_query("COMMIT");	// only commit if email to user was successful, otherwise we get a user in the database but no way for real person to interact with account
 			$json = json_encode(array ("status"=>"success", "msg"=> getTextString("newUserEmailInfo", [$username]), "username"=>$username));
