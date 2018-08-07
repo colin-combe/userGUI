@@ -235,6 +235,10 @@ table.d3table th span {
 	margin: 0 0.5em;
 }
 
+table.d3table tfoot {
+	display: none;
+}
+
 table tbody tr:nth-child(odd) {
 	background: #f4f4f4;
 }
