@@ -1,5 +1,5 @@
 var CLMSUI = (function (mod) {
-    
+
     mod.loginForms = {
 
         msgs: [],
@@ -10,7 +10,7 @@ var CLMSUI = (function (mod) {
             var json = prepostData || {};
             json.redirect = document.referrer;
             //console.log ("json", json);
-            zform.find("input[type='text'],input[type='email'],input[type='password']").each (function() { 
+            zform.find("input[type='text'],input[type='email'],input[type='password']").each (function() {
                 var elem = $(this);
                 json[elem.attr("name")] = elem.prop("value");
             });
@@ -26,7 +26,7 @@ var CLMSUI = (function (mod) {
                         if (data.redirect) {    // redirect if login good
                             window.location.assign (data.redirect);
                         } else if (data.msg) {
-                            $("#msg").text(data.msg).addClass("backToBlack");
+                            $("#msg").html(data.msg).addClass("backToBlack");
                         }
                     }
                     else if (data.status !== "success") {    // say which field is wrong if login bad
@@ -56,7 +56,7 @@ var CLMSUI = (function (mod) {
                 }
             });
         },
-		
+
 		simpleAjaxPost: function (ajaxSetup, prepostData, doneFunc) {
             // grab form input field values and put them in a json obj
             var json = prepostData || {};
@@ -113,7 +113,7 @@ var CLMSUI = (function (mod) {
                 radius: 7, // The radius of the inner circle
             });
         },
-        
+
         makeHelpButton: function () {
             $("#helpButton").on("click", function() { window.open (CLMSUI.loginForms.getMsg ("xiHelpURL"), "_blank"); });
             // Make buttons - previously could do immediately, but loading in text from msgs.json means icons need to be added afterwards
@@ -126,11 +126,11 @@ var CLMSUI = (function (mod) {
                     .attr("type", buttonDatum.type)
                     .attr("class", "btn")
                     .text (buttonDatum.label)
-                ; 
+                ;
             });
         },
     };
-    
+
     return mod;
-    
+
 }(CLMSUI || {}));
