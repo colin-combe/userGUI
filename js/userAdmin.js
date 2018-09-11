@@ -465,7 +465,7 @@ var CLMSUI = (function (mod) {
 				// set initial filters
 				var keyedFilters = {};
 				headerEntries.forEach (function (hentry) {
-					keyedFilters[hentry.key] = {value: "", type: hentry.value.type}	
+					keyedFilters[hentry.key] = "";	
 				});
 
 				table
