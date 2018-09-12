@@ -227,13 +227,13 @@ table.d3table {
 }
 
 
-table.d3table tr th, table.d3table tbody tr td, TABLE.d3table .d3table-headerSpan svg.d3table-arrow {
+table.d3table tr th, table.d3table tbody tr td {
 	vertical-align: middle;
 }
 
 
 TABLE.d3table thead th span.d3table-headerSpan {
-    padding: 5px 2px;
+    padding: 5px 3px;
 }
 
 TABLE.d3table tfoot {

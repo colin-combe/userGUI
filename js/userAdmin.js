@@ -332,17 +332,17 @@ var CLMSUI = (function (mod) {
 			 }
 			 
 			 var columnMetaData = [
-				{name: "ID", type: "numeric", tooltip: "", visible: isSuperUser, removable: true, id: "id"},
-				{name: "You", type: "boolean", tooltip: "", visible: isSuperUser, removable: true, id: "you"},
-				{name: "User Name", type: "alpha", tooltip: "", visible: true, removable: false, id: "user_name"},
-				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: false, id: "user_group"},
-				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: false, id: "email"},
-				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: false, id: "update"},
-				{name: "Reset Password", type: "none", tooltip: "", visible: true, removable: false, id: "reset_Password"},
-				{name: "Delete", type: "none", tooltip: "", visible: true, removable: true, id: "delete"},
+				{columnName: "ID", type: "numeric", tooltip: "", visible: isSuperUser, removable: true, id: "id"},
+				{columnName: "You", type: "boolean", tooltip: "", visible: isSuperUser, removable: true, id: "you"},
+				{columnName: "User Name", type: "alpha", tooltip: "", visible: true, removable: false, id: "user_name"},
+				{columnName: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: false, id: "user_group"},
+				{columnName: "Email", type: "alpha", tooltip: "", visible: true, removable: false, id: "email"},
+				{columnName: "Update", type: "boolean", tooltip: "", visible: true, removable: false, id: "update"},
+				{columnName: "Reset Password", type: "none", tooltip: "", visible: true, removable: false, id: "reset_Password"},
+				{columnName: "Delete", type: "none", tooltip: "", visible: true, removable: true, id: "delete"},
 			];
 			 
-			 var headerEntries = columnMetaData.map (function (cmd) {
+			 var columnSettings = columnMetaData.map (function (cmd) {
 				 return {key: cmd.id, value: cmd};
 			 });
 			 
@@ -361,7 +361,7 @@ var CLMSUI = (function (mod) {
             var tableSettings = {
                 users: {domid: "#userTable", 
 					data: userData, 
-					headerEntries: headerEntries,
+					columnSettings: columnSettings,
 					modifiers: {
 						you: function (d) { return d.you ? "<span class='ui-icon ui-icon-person'></span>" : ""; },
 						user_group: function (d) { return "<select></select>"; },
@@ -447,28 +447,28 @@ var CLMSUI = (function (mod) {
                 var sel = d3.select (tableSetting.domid);
                 var baseId = tableSetting.domid.slice(1)+"Table";
 				
-				var d3tab = d3.select(tableSetting.domid).append("div").attr("class", "d3tableContainer")
+				var d3tableContainer = d3.select(tableSetting.domid).append("div").attr("class", "d3tableContainer")
 					.datum({
 						data: tableSetting.data, 
-						headerEntries: tableSetting.headerEntries, 
+						columnSettings: tableSetting.columnSettings, 
 						cellStyles: tableSetting.cellStyles,
 						cellD3Hooks: tableSetting.cellD3Hooks,
-						columnOrder: tableSetting.headerEntries.map (function (hentry) { return hentry.key; }),
+						columnOrder: tableSetting.columnSettings.map (function (hentry) { return hentry.key; }),
 					})
 				;
 				
-				var table = CLMSUI.d3Table ();
-				table (d3tab);
-				applyHeaderStyling (table.getHeaderCells(), tableSetting.autoWidths, tableSetting.cellStyles);
+				var d3table = CLMSUI.d3Table ();
+				d3table (d3tableContainer);
+				applyHeaderStyling (d3table.getHeaderCells(), tableSetting.autoWidths, tableSetting.cellStyles);
 				//console.log ("table", table);
 
 				// set initial filters
 				var keyedFilters = {};
-				headerEntries.forEach (function (hentry) {
+				columnSettings.forEach (function (hentry) {
 					keyedFilters[hentry.key] = "";	
 				});
 
-				table
+				d3table
 					.pageSize(10)
 					.typeSettings ("alphaArray", alphaArrayTypeSettings)	// extra type
 					.filter(keyedFilters)
