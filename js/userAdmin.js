@@ -331,20 +331,16 @@ var CLMSUI = (function (mod) {
 				 rowSel.each (function (d) { setRowIndicators (d3.select(this), buttonEnablingLogic); })	
 			 }
 			 
-			 var columnMetaData = [
-				{name: "ID", type: "numeric", tooltip: "", visible: isSuperUser, removable: true, id: "id"},
-				{name: "You", type: "boolean", tooltip: "", visible: isSuperUser, removable: true, id: "you"},
-				{name: "User Name", type: "alpha", tooltip: "", visible: true, removable: false, id: "user_name"},
-				{name: "User Group", type: "alphaArray", tooltip: "", visible: true, removable: false, id: "user_group"},
-				{name: "Email", type: "alpha", tooltip: "", visible: true, removable: false, id: "email"},
-				{name: "Update", type: "boolean", tooltip: "", visible: true, removable: false, id: "update"},
-				{name: "Reset Password", type: "none", tooltip: "", visible: true, removable: false, id: "reset_Password"},
-				{name: "Delete", type: "none", tooltip: "", visible: true, removable: true, id: "delete"},
-			];
-			 
-			 var headerEntries = columnMetaData.map (function (cmd) {
-				 return {key: cmd.id, value: cmd};
-			 });
+			 var columnSettings = {
+				id: {columnName: "ID", type: "numeric", headerTooltip: "", visible: isSuperUser, removable: true},
+				you: {columnName: "You", type: "boolean", headerTooltip: "", visible: isSuperUser, removable: true},
+				user_name: {columnName: "User Name", type: "alpha", headerTooltip: "", visible: true, removable: false},
+				user_group: {columnName: "User Group", type: "alphaArray", headerTooltip: "", visible: true, removable: false, cellStyle: "fitMultipleSelect"},
+				email: {columnName: "Email", type: "alpha", headerTooltip: "", visible: true, removable: false},
+				update: {columnName: "Update", type: "boolean", headerTooltip: "", visible: true, removable: false},
+				reset_Password: {columnName: "Reset Password", type: "none", headerTooltip: "", visible: true, removable: false},
+				delete: {columnName: "Delete", type: "none", headerTooltip: "", visible: true, removable: true},
+			};
 			 
 			 var buttonHook = function (sel) { 
 				var but = sel.select("button");
@@ -361,7 +357,7 @@ var CLMSUI = (function (mod) {
             var tableSettings = {
                 users: {domid: "#userTable", 
 					data: userData, 
-					headerEntries: headerEntries,
+					columnSettings: columnSettings,
 					modifiers: {
 						you: function (d) { return d.you ? "<span class='ui-icon ui-icon-person'></span>" : ""; },
 						user_group: function (d) { return "<select></select>"; },
@@ -370,7 +366,6 @@ var CLMSUI = (function (mod) {
 						reset_Password: function (d) { return "<button>Reset Password</button>"; },
 						delete: function (d) { return "<button>Delete "+(userId === d.id ? " Me" : " User")+"</button>"; },
 					},
-					cellStyles: {user_group: "fitMultipleSelect"},
 					autoWidths: d3.set(["email"]),
 					cellD3Hooks: {
 						user_group: function (cellSel) {
@@ -423,7 +418,7 @@ var CLMSUI = (function (mod) {
                 },
             };
 			 
-			var applyHeaderStyling = function (headerSel, autoWidths, cellStyles) {
+			var applyHeaderStyling = function (headerSel, autoWidths, columnSettings) {
 				var vcWidth = Math.floor (100.0 / Math.max (1, autoWidths.size() + 1))+"%";
 
 				headerSel
@@ -434,9 +429,9 @@ var CLMSUI = (function (mod) {
 				;
 				
 				headerSel
-					.filter (function(d) { return cellStyles[d.key]; })
+					.filter (function(d) { return columnSettings[d.key].cellStyle; })
 					.each (function(d) {
-						d3.select(this).classed (cellStyles[d.key], true);
+						d3.select(this).classed (columnSettings[d.key].celLStyle, true);
 					})
 				;
 			};
@@ -447,35 +442,39 @@ var CLMSUI = (function (mod) {
                 var sel = d3.select (tableSetting.domid);
                 var baseId = tableSetting.domid.slice(1)+"Table";
 				
-				var d3tab = d3.select(tableSetting.domid).append("div").attr("class", "d3tableContainer")
+				var propertyNames = ["cellStyle", "dataToHTMLModifier", "tooltip", "cellD3EventHook"];
+				[tableSetting.cellStyles, tableSetting.modifiers, tableSetting.simpleTooltips, tableSetting.cellD3Hooks].forEach (function (obj, i) {
+					d3.entries(obj).forEach (function (entry) {
+						columnSettings[entry.key][propertyNames[i]] = entry.value;
+					});
+				});
+				
+				var d3tableContainer = d3.select(tableSetting.domid).append("div").attr("class", "d3tableContainer")
 					.datum({
 						data: tableSetting.data, 
-						headerEntries: tableSetting.headerEntries, 
-						cellStyles: tableSetting.cellStyles,
-						cellD3Hooks: tableSetting.cellD3Hooks,
-						columnOrder: tableSetting.headerEntries.map (function (hentry) { return hentry.key; }),
+						columnSettings: tableSetting.columnSettings, 
+						columnOrder: d3.keys(tableSetting.columnSettings),
 					})
 				;
 				
-				var table = CLMSUI.d3Table ();
-				table (d3tab);
-				applyHeaderStyling (table.getHeaderCells(), tableSetting.autoWidths, tableSetting.cellStyles);
+				var d3table = CLMSUI.d3Table ();
+				d3table (d3tableContainer);
+				applyHeaderStyling (d3table.getHeaderCells(), tableSetting.autoWidths, tableSetting.columnSettings);
 				//console.log ("table", table);
 
 				// set initial filters
 				var keyedFilters = {};
-				headerEntries.forEach (function (hentry) {
-					keyedFilters[hentry.key] = {value: "", type: hentry.value.type}	
+				d3.keys(columnSettings).forEach (function (columnKey) {
+					keyedFilters[columnKey] = "";	
 				});
 
-				table
+				d3table
 					.pageSize(10)
 					.typeSettings ("alphaArray", alphaArrayTypeSettings)	// extra type
 					.filter(keyedFilters)
 					.orderKey("id")
 					.orderDir("desc")
 					.sort()
-					.dataToHTML (tableSetting.modifiers)
 					.postUpdate (function (rowSel) {
 						highlightRows (rowSel);
 						enableCells (rowSel);

@@ -231,8 +231,23 @@ table.d3table tr th, table.d3table tbody tr td {
 	vertical-align: middle;
 }
 
-table.d3table th span {
-	margin: 0 0.5em;
+
+TABLE.d3table thead th span.d3table-headerSpan {
+    padding: 5px 3px;
+}
+
+TABLE.d3table tfoot {
+	display: none;
+}
+
+TABLE.d3table thead th {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.d3table-filterInput {
+	padding: 0;
+	margin: 0 4px;
 }
 
 table tbody tr:nth-child(odd) {
