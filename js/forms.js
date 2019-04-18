@@ -26,7 +26,7 @@ var CLMSUI = (function (mod) {
                         if (data.redirect) {    // redirect if login good
                             window.location.assign (data.redirect);
                         } else if (data.msg) {
-                            $("#msg").html(data.msg).addClass("backToBlack");
+                            $("#msg").html(data.msg).trigger('openModal');//addClass("backToBlack");
                         }
                     }
                     else if (data.status !== "success") {    // say which field is wrong if login bad

@@ -33,9 +33,13 @@
               </form>
 
             <div id="spinBox"></div>
-            <div id="msg"></div>
+            <div id="msg" role="dialog" class="modal" style="display: none;"></div>
 
             <script type="text/javascript">
+                $("#msg").easyModal({
+                    overlayClose: false,
+                    closeOnEscape: false
+                });
                 //$(document).ready(function(e) {
                 var onloadCallback = function () {
                     $.when (
