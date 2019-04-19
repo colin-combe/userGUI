@@ -26,7 +26,12 @@ var CLMSUI = (function (mod) {
                         if (data.redirect) {    // redirect if login good
                             window.location.assign (data.redirect);
                         } else if (data.msg) {
-                            $("#msg").html(data.msg).trigger('openModal');//addClass("backToBlack");
+                            $("#msg").html(data.msg);//addClass("backToBlack");
+                            var modal = $("#msgModal");
+                            modal.trigger('openModal');
+                            var ml = -1 * modal.width() / 2;
+                            var mt = -1 * modal.height() / 2;
+                            modal.css("margin-left", ml).css("margin-top", mt);// recentre
                         }
                     }
                     else if (data.status !== "success") {    // say which field is wrong if login bad
@@ -39,6 +44,11 @@ var CLMSUI = (function (mod) {
                             }
                         } else if (data.msg) {
                             $("#msg").text(data.msg);
+                            var modal = $("#msgModal");
+                            modal.trigger('openModal');
+                            var ml = -1 * modal.width() / 2;
+                            var mt = -1 * modal.height() / 2;
+                            modal.css("margin-left", ml).css("margin-top", mt);// recentre
                         }
                         $(".revealOnFailure").css("display", "block");
                         if (data.revalidate) {

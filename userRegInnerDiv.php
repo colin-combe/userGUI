@@ -33,10 +33,14 @@
               </form>
 
             <div id="spinBox"></div>
-            <div id="msg" role="dialog" class="modal" style="display: none;"></div>
+
+            <div id="msgModal" role="dialog" class="modal" style="display: none;">
+                <div id="msg"></div>
+                <button onclick="location.href='./login.php'"  class="btn-2"  type="button" >OK</button>
+            </div>
 
             <script type="text/javascript">
-                $("#msg").easyModal({
+                $("#msgModal").easyModal({
                     overlayClose: false,
                     closeOnEscape: false
                 });
@@ -50,8 +54,8 @@
                         var config = configxhr[0];
                         var msgs = msgsxhr[0];
                         CLMSUI.loginForms.msgs = msgs;
-                        CLMSUI.loginForms.makeFooter();
-                        CLMSUI.loginForms.makeHelpButton();
+                        // CLMSUI.loginForms.makeFooter();
+                        // CLMSUI.loginForms.makeHelpButton();
                         CLMSUI.loginForms.finaliseRecaptcha (config.googleRecaptchaPublicKey);
                         var spinner = CLMSUI.loginForms.getSpinner();
 

@@ -13,7 +13,7 @@ footer {
 }
 
 
-label { 
+label {
     display: inline-block;
     min-width: 8em;
     line-height: 1.4em;
@@ -96,13 +96,18 @@ hr.wideDivider {
 }
 
 #msg {
-    transition: color 4s ease;
-    color: red;
+    /* transition: color 4s ease;
+    color: red; */
 }
+
 #msg.backToBlack {
     color: inherit;
 }
 
+#msgModal {
+    width: 400px;
+    padding: 20px;
+}
 #spinBox {
     width: 2em;
     height: 4em;

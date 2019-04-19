@@ -40,8 +40,8 @@
                     var msgs = msgsxhr[0];
                     var config = configxhr[0];
                     CLMSUI.loginForms.msgs = msgs;
-                    CLMSUI.loginForms.makeFooter();
-                    CLMSUI.loginForms.makeHelpButton();
+                    // CLMSUI.loginForms.makeFooter();
+                    // CLMSUI.loginForms.makeHelpButton();
 
                     // function checkConnection (url) {
                     //     $.ajax({
