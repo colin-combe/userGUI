@@ -14,6 +14,10 @@ var CLMSUI = (function (mod) {
                 var elem = $(this);
                 json[elem.attr("name")] = elem.prop("value");
             });
+            
+            var displayError = function (msg) {
+                $("#msg").css("display", "inline").text(msg);
+            };
 
             $.ajax ({
                 type: zform.attr("method"),
@@ -36,7 +40,7 @@ var CLMSUI = (function (mod) {
                                 $("#"+data.field).siblings(".error2").text(data.msg);
                             }
                         } else if (data.msg) {
-                            $("#msg").text(data.msg);
+                            displayError (data.msg);
                         }
                         $(".revealOnFailure").css("display", "block");
                         if (data.revalidate) {

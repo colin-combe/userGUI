@@ -236,6 +236,7 @@ var CLMSUI = (function (mod) {
         }
 
         function setRowIndicators (singleRowSelection, buttonEnablingLogic) {
+            //console.error ("sri", singleRowSelection, singleRowSelection.selectAll("td"));
             indicateChangedValues (singleRowSelection.selectAll("td"));
 			var d = singleRowSelection.datum();
             enableButton (d, "update", buttonEnablingLogic);
