@@ -38,6 +38,9 @@ var CLMSUI = (function (mod) {
                     dataType: "json",
                     encode: true,
                     success: function (response, textStatus, jqXhr) {
+                        if (response.times) {
+                            response.times.io = ((new Date).getTime() / 1000) - response.times.endAbsolute;
+                        }
                         console.log ("response", response, textStatus);
                         if (response.redirect) {
                             window.location.replace (response.redirect);    // redirect if server php passes this field    
