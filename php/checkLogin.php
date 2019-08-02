@@ -1,7 +1,7 @@
 <?php
 include('../../connectionString.php');
 // Connect to server
-$dbconn = pg_connect($connectionString)or die("cannot connect");
+$dbconn = pg_connect($connectionString)or die(json_encode (array ("status"=>"fail", "msg"=>"Cannot connect to Xi Database. Please contact Xi Administrator.")));
 $date = date("d-M-Y H:i:s");
 
 try {
