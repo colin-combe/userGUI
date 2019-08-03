@@ -88,7 +88,7 @@ footer > p:first-of-type::before {
 }
 
 footer > p:last-of-type::before {
-    content: "© Rappsilber Laboratory, 2018";
+    content: "© Rappsilber Laboratory, 2019";
 }
 
 hr.wideDivider {
