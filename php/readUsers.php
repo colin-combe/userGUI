@@ -40,13 +40,9 @@ else {
         $times["getGroups"] = microtime(true) - $z;
         $z = microtime(true);
         
-        $username = null;
         foreach ($returnedData as $i => $row) {
             $ugroupArr = explode(",", trim($row['user_group'], '{}'));    // explode string to array
-            $returnedData[$i]['user_group'] = array_diff ($ugroupArr, array("NULL"));  // Strip out nulls
-            if ($row['id'] == $_SESSION['user_id']) {
-                $username = $row['user_name'];
-            }   
+            $returnedData[$i]['user_group'] = array_diff ($ugroupArr, array("NULL"));  // Strip out nulls   
         }
         $times["attachGroups"] = microtime(true) - $z;
         $times["endAbsolute"] = microtime(true);
@@ -55,7 +51,7 @@ else {
         //close connection
         pg_close($dbconn);
 
-        echo json_encode (array ("status" => "success", "data" => $returnedData, "groupTypeData" => $groupData, "superuser" => $isSuperUser, "userid" => $_SESSION["user_id"], "username" => $username, "times" => $times));
+        echo json_encode (array ("status" => "success", "data" => $returnedData, "groupTypeData" => $groupData, "superuser" => $isSuperUser, "userid" => $_SESSION["user_id"], "username" => $_SESSION['session_name'], "times" => $times));
     }
     catch (Exception $e) {
         $date = date("d-M-Y H:i:s");
