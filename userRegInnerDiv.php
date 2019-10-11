@@ -4,7 +4,7 @@
 
                 <div class="control-group">
                     <label for="email">Pick Username</label>
-                    <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9-_.]{4,16}" oninput="this.setCustomValidity('')" required autofocus/>
+                    <input type="text" value="" placeholder="Username" id="username" name="username" pattern="^[a-zA-Z0-9]{1}[a-zA-Z0-9-_.]{2,14}[a-zA-Z0-9]" oninput="this.setCustomValidity('')" required autofocus/>
                     <span class="error" id="username-errorMsg"></span>
                     <span class="error2"></span>
                 </div>

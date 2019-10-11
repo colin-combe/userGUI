@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+
+<!--
+//  CLMS-UI
+//  Copyright 2015 Colin Combe, Rappsilber Laboratory, Edinburgh University
+//
+//  This file is part of CLMS-UI.
+//
+//  CLMS-UI is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  CLMS-UI is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with CLMS-UI.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Xi User Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="a common platform for the downstream analysis of CLMS data" />
+      <meta name="google" content="notranslate" />
+      <meta name="author" content="Rappsilber Laboratory">
+      <meta name="copyright" content="2016">
+      <meta charset="UTF-8">
+
+      <link rel="stylesheet" href="../vendor/css/common.css" />
+      <link rel="stylesheet" href="css/login.css" />
+
+      <script src="../vendor/js/jquery-3.3.1.js"></script>
+      <script type="text/javascript" src="./js/forms.js"></script>
+  </head>
+
+  <body>
+
+	<header>
+        <span class="topRight"><button id="helpButton"></button></span>
+        <h1>Xi User Login</h1>
+	</header>
+
+    <div class="login">
+
+          <form id="login_form" name="login_form" method="post" action="./php/checkLogin.php" class="login-form">
+            <div class="control-group">
+                <label for="login-name">Username</label>
+                <input type="text" value="" placeholder="Username" id="login-name" name="login-name" pattern="^[a-zA-Z0-9]{1}[a-zA-Z0-9-_.]{2,14}[a-zA-Z0-9]" oninput="this.setCustomValidity('')" required autofocus/>
+                <span class="error" id="login-name-errorMsg"></span>
+                <span class="error2"></span>
+            </div>
+
+            <div class="control-group">
+              <label for="login-pass">Password</label>
+              <input type="password" value="" placeholder="Password" id="login-pass" name="login-pass" required/>
+              <span class="error2"></span>
+            </div>
+
+            <input name="Submit" value="Login To Xi" type="submit" class="btn btn-1a"/>
+              
+            <span class="error" id="msg"></span>
+          </form>
+
+        <hr class="wideDivider">
+        <h3>Forgotten Password?</h3>
+        <form id="reset_password_form" name="reset_password_form" action="./userRequestPassword.html">
+            <input name="Submit" value="Reset Password" type="submit" class="btn btn-1a"/>
+        </form>
+
+        <div class="newUserSection">
+            <hr class="wideDivider">
+            <h3>New User?</h3>
+            <form id="new_user_form" name="new_user_form" action="./userReg.html">
+                <input name="Submit" value="Create New Account" type="submit" class="btn btn-1a"/>
+            </form>
+        </div>
+
+        <script type="text/javascript">
+            $(document).ready(function(e) {
+                $.when (
+                    $.getJSON("./json/config.json"),
+                    $.getJSON("./json/msgs.json")
+                ).done (function (configxhr, msgsxhr) {
+                    var msgs = msgsxhr[0];
+                    var config = configxhr[0];
+                    CLMSUI.loginForms.msgs = msgs;
+                    CLMSUI.loginForms.makeFooter();
+                    CLMSUI.loginForms.makeHelpButton();
+
+                    function checkConnection (url) {
+                        $.ajax({
+                            url: url,
+                            cache: false,
+                            timeout:1000,
+                            error: function (jqXHR, textStatus) {
+                                //alert("Request failed: " + textStatus );
+                            },
+                            success: function () {
+                                $(".newUserSection").css("display", "block");
+                            }
+                        });
+                     }
+                     checkConnection("./userReg.html"); // show new user section if reg page is reachable
+
+                     var nameValidationMsg = CLMSUI.loginForms.getMsg("clientNameValidationInfo");
+                    $("#login-name").attr("oninvalid", "this.setCustomValidity('"+nameValidationMsg+"')");
+                    $("#login-name-errorMsg").text("< "+nameValidationMsg);
+
+                    // divert form submit action to this javascript function
+                    $("#login_form").submit (function(e) {
+                        $(".error2").css("display", "none");
+                        CLMSUI.loginForms.ajaxPost (e.target);
+                        e.preventDefault();
+                    });
+                 });
+            });
+        </script>
+    </div>
+
+  </body>
+</html>

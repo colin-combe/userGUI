@@ -15,6 +15,10 @@ var CLMSUI = (function (mod) {
                 json[elem.attr("name")] = elem.prop("value");
             });
 
+            var displayError = function (msg) {
+                $("#msg").css("display", "inline").text(msg);
+            };
+
             $.ajax ({
                 type: zform.attr("method"),
                 url: zform.attr("action"),
@@ -43,12 +47,7 @@ var CLMSUI = (function (mod) {
                                 $("#"+data.field).siblings(".error2").text(data.msg);
                             }
                         } else if (data.msg) {
-                            $("#msg").text(data.msg);
-                            var modal = $("#msgModal");
-                            modal.trigger('openModal');
-                            var ml = -1 * modal.width() / 2;
-                            var mt = -1 * modal.height() / 2;
-                            modal.css("margin-left", ml).css("margin-top", mt);// recentre
+                            displayError (data.msg);
                         }
                         $(".revealOnFailure").css("display", "block");
                         if (data.revalidate) {
