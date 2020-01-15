@@ -35,17 +35,17 @@
       <link rel="stylesheet" href="css/login.css" />
       <link rel="stylesheet" href="../vendor/css/example.wink.css" />
 
-      <script type="text/javascript" src="./../vendor/js/jquery-3.3.1.js"></script>
+      <script type="text/javascript" src="./../vendor/js/jquery-3.4.1.js"></script>
       <script type="text/javascript" src="../vendor/js/hideShowPassword.js"></script>
       <script type="text/javascript" src="./js/forms.js"></script>
   </head>
 
   <body>
 
-	<header>
+    <header>
         <span class="topRight"><button id="helpButton"></button></span>
         <h1>Xi GDPR Acceptance</h1>
-	</header>
+    </header>
 
     <div class="login">
 
@@ -73,11 +73,11 @@
                        return false;
                     }
 
-					CLMSUI.loginForms.simpleAjaxPost (
-						{method: "POST", url: "php/GDPRacceptance.php"},
-						{token: getQueryVariable("gdpr_token")},
-						function () { $("#msg").html(CLMSUI.loginForms.getMsg("GDPRacceptance")); }
-					)
+                    CLMSUI.loginForms.simpleAjaxPost (
+                        {method: "POST", url: "php/GDPRacceptance.php"},
+                        {token: getQueryVariable("gdpr_token")},
+                        function () { $("#msg").html(CLMSUI.loginForms.getMsg("GDPRacceptance")); }
+                    )
                 });
             });
 
