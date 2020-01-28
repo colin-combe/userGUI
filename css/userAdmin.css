@@ -213,6 +213,10 @@ table .ms-parent {
     text-transform: capitalize;
 }
 
+.d3table-wrapper {
+    overflow: initial;
+}
+
 TABLE.d3table th.fitMultipleSelect, TABLE.d3table td.fitMultipleSelect {
 	min-width: 230px;
 	width: 280px;
