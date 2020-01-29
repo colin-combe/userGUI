@@ -68,8 +68,8 @@ else {
          pg_query("COMMIT");
 
         if (filter_var ($email, FILTER_VALIDATE_EMAIL)) {
-            require_once ('../vendor/php/PHPMailer-master/src/PHPMailer.php');
-            require_once ('../vendor/php/PHPMailer-master/src/SMTP.php');
+            require_once ('../../vendor/php/PHPMailer-master/src/PHPMailer.php');
+            require_once ('../../vendor/php/PHPMailer-master/src/SMTP.php');
 
             $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("deleteUserEmailHeader"));
             $mail->MsgHTML(getTextString("deleteUserEmailBody"));
