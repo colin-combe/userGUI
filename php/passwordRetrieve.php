@@ -2,14 +2,17 @@
 include ('../../connectionString.php');
 include ('../../vendor/php/utils.php');
 
+/**
+*   This code sends a password reset email on receipt of a recaptcha response and user id
+*/
 try {
     //error_log (print_r ($_POST, true));
-    
+
     $pid = validatePostVar ("password-retrieve", '/.{4,}/', false, null, "Needs to be at least 4 characters");
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
-    
+
     validateCaptcha ($captcha);
-    
+
     $dbconn = pg_connect($connectionString);
 
     try {
@@ -21,7 +24,7 @@ try {
         $result = pg_execute($dbconn, "doesEmailExist", [$pid]);
         $count = intval(pg_numrows($result));
         $returnRow = pg_fetch_assoc ($result);
-        
+
         sendPasswordResetMail ($returnRow['email'], $returnRow['id'], $returnRow['user_name'], $count, $dbconn);
 
         echo (json_encode(array ("status"=>"success", "msg"=> getTextString("resetPasswordEmailInfo"))));

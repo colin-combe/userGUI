@@ -3,9 +3,10 @@ include ('../../connectionString.php');
 include ('../../../xi_ini/emailInfo.php');
 include ('../../vendor/php/utils.php');
 
+/**
+*   Register a new user if input information is acceptable. Send GDPR email.
+*/
 try {
-    //error_log (print_r ($_POST, true));   // This printed passwords in plain text to the php log. Lol.
-
     $config = json_decode (file_get_contents ("../json/config.json"), true);
 
     $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
@@ -40,7 +41,7 @@ try {
         // limit use of existing user_name to generate new name, as if it's 20 chars the new name would be identical and this will throw an error too
         pg_query("BEGIN") or die("Could not start transaction\n");
         $hash = $pword ? password_hash ($pword, PASSWORD_BCRYPT) : "";
-		$gdpr_token = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
+        $gdpr_token = chr( mt_rand( 97 ,122 ) ) .substr( md5( time( ) ) ,1 );
         $newUser = pg_prepare($dbconn, "newUser", "INSERT INTO users (user_name, password, email, max_aas, max_spectra, gdpr_token) VALUES($1, $3, $2, 100000000, 100000, $4) RETURNING id, user_name");
         $result = pg_execute($dbconn, "newUser", [$username, $email, $hash, $gdpr_token]);
         $returnRow = pg_fetch_assoc ($result); // return the inserted row (or selected parts thereof)
@@ -49,29 +50,29 @@ try {
         $addUserToGroup = pg_prepare($dbconn, "addUserToGroup", "INSERT INTO user_in_group (user_id, group_id) VALUES($1, $2)");
         $result = pg_execute($dbconn, "addUserToGroup", [$returnedID, "12"]);
 
-		require_once    ('../../vendor/php/PHPMailer-master/src/PHPMailer.php');
-		require_once    ('../../vendor/php/PHPMailer-master/src/SMTP.php');
+        require_once    ('../../vendor/php/PHPMailer-master/src/PHPMailer.php');
+        require_once    ('../../vendor/php/PHPMailer-master/src/SMTP.php');
 
-		$url = $urlRoot."userGUI/GDPRacceptance.html?gdpr_token=".$gdpr_token;
-		$mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
-		$mail->MsgHTML(getTextString("newUserEmailBody", [$url]));
+        $url = $urlRoot."userGUI/GDPRacceptance.html?gdpr_token=".$gdpr_token;
+        $mail = makePHPMailerObj ($mailInfo, $email, $username, getTextString("newUserEmailHeader"));
+        $mail->MsgHTML(getTextString("newUserEmailBody", [$url]));
 
-		if(!$mail->Send()) {
-			error_log (print_r ("failsend", true));
-			pg_query("ROLLBACK");
-			echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
-		}
-		else {
-			pg_query("COMMIT");	// only commit if email to user was successful, otherwise we get a user in the database but no way for real person to interact with account
-			$json = json_encode(array ("status"=>"success", "msg"=> getTextString("newUserEmailInfo", [$username]), "username"=>$username));
-			echo ($json);
-		}
+        if(!$mail->Send()) {
+            error_log (print_r ("failsend", true));
+            pg_query("ROLLBACK");
+            echo json_encode (array ("status"=>"fail", "msg"=>getTextString("newUserEmailError", [$mail->ErrorInfo]), "revalidate"=> true));
+        }
+        else {
+            pg_query("COMMIT");	// only commit if email to user was successful, otherwise we get a user in the database but no way for real person to interact with account
+            $json = json_encode(array ("status"=>"success", "msg"=> getTextString("newUserEmailInfo", [$username]), "username"=>$username));
+            echo ($json);
+        }
 
     } catch (Exception $e) {
          pg_query("ROLLBACK");
          $date = date("d-M-Y H:i:s");
          $msg = ($e->getMessage()) ? ($e->getMessage()) : getTextString("newUserErrorCatchall");
-		 error_log (print_r ($msg, true));
+         error_log (print_r ($msg, true));
          echo (json_encode(array ("status"=>"fail", "msg"=> $msg."<br>".$date, "revalidate"=> true)));
     }
 
