@@ -9,9 +9,9 @@ try {
     //error_log (print_r ($_POST, true));
 
     $pid = validatePostVar ("password-retrieve", '/.{4,}/', false, null, "Needs to be at least 4 characters");
-    $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
+    // $captcha = validatePostVar ("g-recaptcha-response", '/.{1,}/', false, "recaptchaWidget");
 
-    validateCaptcha ($captcha);
+    // validateCaptcha ($captcha);
 
     $dbconn = pg_connect($connectionString);
 
